@@ -8,8 +8,11 @@ import WebKit
 /// 利用 JavaScript 爬取網頁的爬蟲.
 public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 {
+    /// Typealias for 爬取完的 Result.
+    public typealias Result = () throws -> T
+
     /// Typealias for 爬取完的 Callback.
-    public typealias Callback = (T?, Error?) -> Void
+    public typealias Callback = (Result) -> Void
 
     /// 爬取完的 Callback.
     public var callback: Callback?
@@ -45,11 +48,11 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 
         let configure: WKWebViewConfiguration = WKWebViewConfiguration()
         configure.allowsAirPlayForMediaPlayback = false
-        configure.allowsInlineMediaPlayback = false
         configure.allowsPictureInPictureMediaPlayback = false
 
         _webView = WKWebView(frame: .zero, configuration: configure)
         _webView.customUserAgent = userAgent
+        _webView.isHidden = true
 
         super.init()
 
@@ -97,7 +100,7 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
             return
         }
 
-        callback?(nil, error)
+        callback? { throw error }
     }
 
     public func webView(_: WKWebView,
@@ -109,7 +112,7 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
             return
         }
 
-        callback?(nil, error)
+        callback? { throw error }
     }
 
     public func webView(_ webView: WKWebView, didFinish _: WKNavigation!)
@@ -118,6 +121,12 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
             let javaScript: String = javaScript
         else
         {
+            let error: Error = NSError(domain: "com.shinrenpan.WebParser",
+                                       code: -900,
+                                       userInfo: [NSLocalizedDescriptionKey: "No setting javascript"])
+
+            callback? { throw error }
+
             return
         }
 
@@ -136,7 +145,7 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
                                        code: -901,
                                        userInfo: [NSLocalizedDescriptionKey: "Retry times maximum"])
 
-            callback?(nil, error)
+            callback? { throw error }
 
             return
         }
@@ -157,7 +166,7 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 
             if let error: Error = error
             {
-                self.callback?(nil, error)
+                self.callback? { throw error }
 
                 return
             }
@@ -173,13 +182,13 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
                     let jsonData: Data = try JSONSerialization.data(withJSONObject: result, options: [])
                     let model: T = try JSONDecoder().decode(T.self, from: jsonData)
 
-                    self.callback?(model, nil)
+                    self.callback? { return model }
                 }
                 catch let error
                 {
                     if self._retryTimes == 0
                     {
-                        self.callback?(nil, error)
+                        self.callback? { throw error }
 
                         return
                     }
@@ -193,7 +202,7 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
                 {
                     let error: Error = URLError(.zeroByteResource)
 
-                    self.callback?(nil, error)
+                    self.callback? { throw error }
 
                     return
                 }
@@ -237,7 +246,7 @@ public extension WebParser
                                        code: -900,
                                        userInfo: [NSLocalizedDescriptionKey: "No setting javascript"])
 
-            callback?(nil, error)
+            callback? { throw error }
 
             return
         }
@@ -250,7 +259,7 @@ public extension WebParser
         {
             let error: Error = URLError(.badURL)
 
-            callback?(nil, error)
+            callback? { throw error }
 
             return
         }

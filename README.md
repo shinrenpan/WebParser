@@ -24,9 +24,17 @@ struct MyModel: Decodable
 }
 
 // 2. Init WebParser.
-let parser: WebParser = WebParser<MyModel>()
-{ (model: MyModel?, error: Error?) in
+let parser: WebParser = WebParser<MyModel>("custom UserAgent")
+{ (result: WebParser<MyModel>.Result) in
 
+    do
+    {
+        let model: MyModel = try result()
+    }
+    catch let error
+    {
+        // error handle
+    }   
 }
 
 // 3. Setup parse url.
@@ -38,3 +46,5 @@ parser.javaScript = "some javascript"
 // 5. Start parse.
 parser.parse()
 ```
+
+Also see [Demo](Demo) project.
