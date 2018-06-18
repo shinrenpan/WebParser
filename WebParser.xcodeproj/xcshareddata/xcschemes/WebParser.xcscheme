@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D76F99EA2071EEF200B263EA"
+               BlueprintIdentifier = "86A511238896E5FE1D546AB0E7D4596E"
                BuildableName = "WebParser.framework"
                BlueprintName = "WebParser"
                ReferencedContainer = "container:WebParser.xcodeproj">
@@ -45,7 +45,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D76F99EA2071EEF200B263EA"
+            BlueprintIdentifier = "86A511238896E5FE1D546AB0E7D4596E"
             BuildableName = "WebParser.framework"
             BlueprintName = "WebParser"
             ReferencedContainer = "container:WebParser.xcodeproj">
@@ -63,7 +63,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D76F99EA2071EEF200B263EA"
+            BlueprintIdentifier = "86A511238896E5FE1D546AB0E7D4596E"
             BuildableName = "WebParser.framework"
             BlueprintName = "WebParser"
             ReferencedContainer = "container:WebParser.xcodeproj">
