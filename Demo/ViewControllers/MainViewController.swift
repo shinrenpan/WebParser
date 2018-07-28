@@ -5,34 +5,34 @@
 import UIKit
 import WebParser
 
-final class ViewController: UITableViewController
+final class MainViewController: UITableViewController
 {
-    @IBOutlet private var _reloadItem: UIBarButtonItem!
+    @IBOutlet private var __reloadItem: UIBarButtonItem!
 
-    private var _dataSource: [Comic]?
-    private var _parser: WebParser = WebParser<[Comic]>()
+    private var __dataSource: [Comic]?
+    private let __parser: WebParser = WebParser<[Comic]>()
 }
 
 // MARK: - LifeCycle
 
-extension ViewController
+extension MainViewController
 {
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        navigationItem.rightBarButtonItem = _reloadItem
+        navigationItem.rightBarButtonItem = __reloadItem
         __setupParser()
         __setupParserCallback()
     }
 }
 
-extension ViewController
+extension MainViewController
 {
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
 
-        if _dataSource == nil
+        if __dataSource == nil
         {
             __reloadItemClicked(nil)
         }
@@ -41,7 +41,7 @@ extension ViewController
 
 // MARK: - UITableViewDataSource
 
-extension ViewController
+extension MainViewController
 {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
@@ -52,7 +52,7 @@ extension ViewController
             fatalError("Can't find cell")
         }
 
-        if let comic: Comic = _dataSource?[indexPath.row]
+        if let comic: Comic = __dataSource?[indexPath.row]
         {
             cell.textLabel?.text = comic.title
             cell.detailTextLabel?.text = comic.episode
@@ -63,27 +63,27 @@ extension ViewController
 
     override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int
     {
-        return _dataSource?.count ?? 0
+        return __dataSource?.count ?? 0
     }
 }
 
 // MARK: - IBAction
 
-private extension ViewController
+private extension MainViewController
 {
-    @IBAction private func __reloadItemClicked(_: UIBarButtonItem?)
+    @IBAction func __reloadItemClicked(_: UIBarButtonItem?)
     {
         navigationItem.rightBarButtonItem = __loadingItem()
-        _dataSource = nil
+        __dataSource = nil
         tableView.reloadData()
 
-        _parser.parse()
+        __parser.parse()
     }
 }
 
 // MARK: - Private
 
-private extension ViewController
+private extension MainViewController
 {
     func __setupParser()
     {
@@ -102,43 +102,45 @@ private extension ViewController
         results;
         """
 
-        _parser.javaScript = javaScript
-        _parser.parseURL = "https://tw.manhuagui.com/update/"
+        __parser.javaScript = javaScript
+        __parser.parseURL = "https://tw.manhuagui.com/update/"
     }
 }
 
-private extension ViewController
+private extension MainViewController
 {
     func __setupParserCallback()
     {
-        _parser.callback = { [weak self] (results: WebParser<[Comic]>.Result) in
+        __parser.callback = { [weak self] (result: WebParser<[Comic]>.Result) in
             guard
-                let `self`: ViewController = self
+                let `self`: MainViewController = self
             else
             {
                 return
             }
 
-            self.navigationItem.rightBarButtonItem = self._reloadItem
+            self.navigationItem.rightBarButtonItem = self.__reloadItem
 
-            do
+            switch result
             {
-                self._dataSource = try results()
-                self.tableView.reloadData()
-            }
-            catch let error
-            {
-                print(error)
+                case let .success(comics):
+                    self.__dataSource = comics
+                    self.tableView.reloadData()
+
+                case let .error(e):
+                    print(e)
             }
         }
     }
 }
 
-private extension ViewController
+private extension MainViewController
 {
     func __loadingItem() -> UIBarButtonItem
     {
-        let loadingView: UIActivityIndicatorView = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+        let loadingView: UIActivityIndicatorView =
+            UIActivityIndicatorView(activityIndicatorStyle: .gray)
+
         loadingView.startAnimating()
 
         return UIBarButtonItem(customView: loadingView)
