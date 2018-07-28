@@ -8,11 +8,8 @@ import WebKit
 /// 利用 JavaScript 爬取網頁的爬蟲.
 public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 {
-    /// Typealias for 爬取完的 Result.
-    public typealias Result = () throws -> T
-
     /// Typealias for 爬取完的 Callback.
-    public typealias Callback = (Result) -> Void
+    public typealias Callback = (WebParser.Result) -> Void
 
     /// 爬取完的 Callback.
     public var callback: Callback?
@@ -24,45 +21,40 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
     public var parseURL: String?
 
     /// 是否取消爬取.
-    private var _cancel: Bool = false
+    private var __cancel: Bool = false
 
-    /// 要重試的次數.
-    private var _retryTimes: Int = 0
-
-    /// 重試的間隔.
-    private var _delayTime: Double = 0.0
+    /// 爬取的 Delay 時間.
+    private var __delayTime: Double = 0.0
 
     /// WebView.
-    private var _webView: WKWebView
+    private var __webView: WKWebView
 
-    // MARK: - LifeCycle
+    // MARK: - Init
 
     /// 初始化.
     ///
     /// - Parameters:
     ///   - userAgent: 要客製化的 User Agent.
-    ///   - callback: 爬取完的 callback.
-    public init(_ userAgent: String? = nil, callback: Callback? = nil)
+    public init(_ userAgent: String? = nil)
     {
-        self.callback = callback
-
         let configure: WKWebViewConfiguration = WKWebViewConfiguration()
         configure.allowsAirPlayForMediaPlayback = false
         configure.allowsPictureInPictureMediaPlayback = false
 
-        _webView = WKWebView(frame: .zero, configuration: configure)
-        _webView.customUserAgent = userAgent
-        _webView.isHidden = true
+        __webView = WKWebView(frame: .zero, configuration: configure)
+        __webView.customUserAgent = userAgent
+        __webView.isHidden = true
 
         super.init()
 
-        _webView.navigationDelegate = self
+        __webView.navigationDelegate = self
     }
 
     // MARK: - WKNavigationDelegate
 
     // 為什麼不用 Extension 隔開,
     // 因為 NSObject 泛型時, @objcMembers(@ojbc) function, 無法使用 Extension 實作
+
     public func webView(_ webView: WKWebView,
                         decidePolicyFor navigationAction: WKNavigationAction,
                         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void)
@@ -95,24 +87,24 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 
     public func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error)
     {
-        if _cancel
+        if __cancel
         {
             return
         }
 
-        callback? { throw error }
+        callback?(.error(error.localizedDescription))
     }
 
     public func webView(_: WKWebView,
                         didFailProvisionalNavigation _: WKNavigation!,
                         withError error: Error)
     {
-        if _cancel
+        if __cancel
         {
             return
         }
 
-        callback? { throw error }
+        callback?(.error(error.localizedDescription))
     }
 
     public func webView(_ webView: WKWebView, didFinish _: WKNavigation!)
@@ -121,93 +113,50 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
             let javaScript: String = javaScript
         else
         {
-            let error: Error = NSError(domain: "com.shinrenpan.WebParser",
-                                       code: -900,
-                                       userInfo: [NSLocalizedDescriptionKey: "No setting javascript"])
-
-            callback? { throw error }
+            callback?(.error("No setting javascript"))
 
             return
         }
 
-        __evaluateJavaScript(javaScript)
+        let selector: Selector = #selector(__evaluateJavaScript(_:))
+        __cancelSelector(selector)
+        perform(selector, with: javaScript, afterDelay: __delayTime)
     }
 
     // MARK: - @objc Private
 
     // 為什麼不用 Extension 隔開,
     // 因為 NSObject 泛型時, @objcMembers(@ojbc) function, 無法使用 Extension 實作
-    @objc private final func __evaluateJavaScript(_ javaScript: String)
+
+    @objc private func __evaluateJavaScript(_ javaScript: String)
     {
-        if _retryTimes < 0
-        {
-            let error: Error = NSError(domain: "com.shinrenpan.WebParser",
-                                       code: -901,
-                                       userInfo: [NSLocalizedDescriptionKey: "Retry times maximum"])
+        __webView.evaluateJavaScript(javaScript)
+        { (result: Any?, error: Error?) in
 
-            callback? { throw error }
-
-            return
-        }
-
-        _retryTimes -= 1
-
-        let selector: Selector = #selector(__evaluateJavaScript(_:))
-
-        _webView.evaluateJavaScript(javaScript)
-        { [weak self] (result: Any?, error: Error?) in
+            if let error_: Error = error
+            {
+                self.callback?(.error(error_.localizedDescription))
+                return
+            }
 
             guard
-                let `self`: WebParser = self
+                let result_: Any = result
             else
             {
+                self.callback?(.error("Can't parser \(self.parseURL ?? "無網址")"))
                 return
             }
 
-            if let error: Error = error
+            do
             {
-                self.callback? { throw error }
+                let json: Data = try JSONSerialization.data(withJSONObject: result_, options: [])
+                let model: T = try JSONDecoder().decode(T.self, from: json)
 
-                return
+                self.callback?(.success(model))
             }
-
-            if let result: Any = result
+            catch let e
             {
-                do
-                {
-                    NSObject.cancelPreviousPerformRequests(withTarget: self,
-                                                           selector: selector,
-                                                           object: nil)
-
-                    let jsonData: Data = try JSONSerialization.data(withJSONObject: result, options: [])
-                    let model: T = try JSONDecoder().decode(T.self, from: jsonData)
-
-                    self.callback? { return model }
-                }
-                catch let error
-                {
-                    if self._retryTimes == 0
-                    {
-                        self.callback? { throw error }
-
-                        return
-                    }
-
-                    self.perform(selector, with: nil, afterDelay: self._delayTime)
-                }
-            }
-            else
-            {
-                if self._retryTimes == 0
-                {
-                    let error: Error = URLError(.zeroByteResource)
-
-                    self.callback? { throw error }
-
-                    return
-                }
-
-                self.perform(selector, with: nil, afterDelay: self._delayTime)
+                self.callback?(.error(e.localizedDescription))
             }
         }
     }
@@ -220,14 +169,15 @@ public extension WebParser
     /// 取消爬取.
     final func cancel()
     {
-        if _cancel
+        if __cancel
         {
             return
         }
 
-        _cancel = true
+        __cancelSelector(#selector(__evaluateJavaScript(_:)))
+        __cancel = true
 
-        _webView.stopLoading()
+        __webView.stopLoading()
     }
 }
 
@@ -236,18 +186,17 @@ public extension WebParser
     /// 開始爬取.
     ///
     /// - Parameters:
-    ///   - times: 重試次數, **Default is 0**.
-    ///   - delay: 重試間隔, **Default is 0.0**.
-    final func parse(retry times: Int = 0, delay: Double = 0.0)
+    ///   - delay: 爬取的 Delay 時間., **Default is 0.0**.
+    ///   - timeout: Timeout 時間, **Default is 30.0**.
+    final func parse(delay: Double = 0.0, timeout: TimeInterval = 30.0)
     {
-        if javaScript == nil
+        __cancelSelector(#selector(__evaluateJavaScript(_:)))
+
+        guard
+            let _: String = javaScript
+        else
         {
-            let error: Error = NSError(domain: "com.shinrenPan.WebParser",
-                                       code: -900,
-                                       userInfo: [NSLocalizedDescriptionKey: "No setting javascript"])
-
-            callback? { throw error }
-
+            callback?(.error("No setting javascript"))
             return
         }
 
@@ -257,20 +206,35 @@ public extension WebParser
             let url: URL = URL(string: urlString)
         else
         {
-            let error: Error = URLError(.badURL)
-
-            callback? { throw error }
-
+            callback?(.error("Bad URL: \(parseURL ?? "沒有網址")"))
             return
         }
 
-        _retryTimes = times
-        _delayTime = delay
+        __delayTime = delay
 
         let request: URLRequest = URLRequest(url: url,
                                              cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
-                                             timeoutInterval: 30.0)
+                                             timeoutInterval: timeout)
 
-        _webView.load(request)
+        __webView.load(request)
+    }
+}
+
+public extension WebParser
+{
+    enum Result
+    {
+        case success(T)
+        case error(String)
+    }
+}
+
+private extension WebParser
+{
+    func __cancelSelector(_ selector: Selector)
+    {
+        NSObject.cancelPreviousPerformRequests(withTarget: self,
+                                               selector: selector,
+                                               object: nil)
     }
 }

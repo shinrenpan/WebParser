@@ -17,33 +17,47 @@ Use carthage.
 ```swift
 
 // 1. Setup your decodable model.
-struct MyModel: Decodable
+struct Comic: Decodable
 {
-    let name: String
-    let img: String
+    private(set) var title: String?
+    private(set) var episode: String?
 }
 
 // 2. Init WebParser.
-let parser: WebParser = WebParser<MyModel>("custom UserAgent")
-{ (result: WebParser<MyModel>.Result) in
+let parser: WebParser = WebParser<[Comic]>()
 
-    do
-    {
-        let model: MyModel = try result()
+// 3. Set parse url.
+parser.parseURL = "https://tw.manhuagui.com/update/"
+
+// 4. Set parse javascript.
+parser.javaScript = """
+var results = [];
+
+$('.latest-list > ul > li').each(function(idx, element)
+{
+    var comic = {};
+    comic.title = $(element).find('.cover').eq(0).attr('title');
+    comic.episode = $(element).find('.tt').text();
+
+    results.push(comic);
+});
+
+results;
+"""
+
+// 5. Set parser callback
+parser.callback = { (result: WebParser<[Comic]>.Result) in
+	switch result
+	{
+		case let .success(comics):
+			// do success action
+
+		case let .error(e):
+			// do error action
     }
-    catch let error
-    {
-        // error handle
-    }   
 }
 
-// 3. Setup parse url.
-parser.parseURL = "https://www.someurl.com"
-
-// 4. Setup parse javascript.
-parser.javaScript = "some javascript"
-
-// 5. Start parse.
+// 6. Start parse.
 parser.parse()
 ```
 
