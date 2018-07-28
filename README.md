@@ -47,13 +47,13 @@ results;
 
 // 5. Set parser callback
 parser.callback = { (result: WebParser<[Comic]>.Result) in
-	switch result
-	{
-		case let .success(comics):
-			// do success action
+    switch result
+    {
+        case let .success(comics):
+        //do success action
 
-		case let .error(e):
-			// do error action
+        case let .error(e):
+        // do error action
     }
 }
 
