@@ -1,35 +1,43 @@
-Parse website use javascript base on WKWebView.
+
+根據這篇 [網路爬蟲][1], 基於 WKWebView, 實做出可以 model 化的爬蟲 Framework
 
 
 ## Required ##
 - Xcode 9.3
 - Swift 4.1
 
-> Swift only, not support Objective-C
-
 
 ## Install ##
 Use carthage.
 
 
-## Useage ##
+以 [網路爬蟲][1] 文章為例:
+
+**步驟 1: 設置 Model**
 
 ```swift
-
-// 1. Setup your decodable model.
 struct Comic: Decodable
 {
     private(set) var title: String?
     private(set) var episode: String?
 }
+```
 
-// 2. Init WebParser.
+**步驟 2: 初始化 WebParser**
+
+```swift
 let parser: WebParser = WebParser<[Comic]>()
+```
 
-// 3. Set parse url.
+**步驟 3: 設置爬取網址**
+
+```swift
 parser.parseURL = "https://tw.manhuagui.com/update/"
+```
 
-// 4. Set parse javascript.
+**步驟 4: 設置解析 JavaScript**
+
+```swift
 parser.javaScript = """
 var results = [];
 
@@ -44,8 +52,11 @@ $('.latest-list > ul > li').each(function(idx, element)
 
 results;
 """
+```
 
-// 5. Set parser callback
+**步驟 5: 設置返回 Callback**
+
+```swift
 parser.callback = { (result: WebParser<[Comic]>.Result) in
     switch result
     {
@@ -56,9 +67,12 @@ parser.callback = { (result: WebParser<[Comic]>.Result) in
         // do error action
     }
 }
+```
 
-// 6. Start parse.
+**步驟 6: 開始爬取**
+
+```swift
 parser.parse()
 ```
 
-Also see [Demo](Demo) project.
+[1]: https://shinrenpan.github.io/post/web-parser/
