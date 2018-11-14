@@ -1,44 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Nhc-oX-9Tg">
-    <device id="retina4_7" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14313.18" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Nhc-oX-9Tg">
     <dependencies>
-        <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.14"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--ViewController-->
+        <!--DemoController-->
         <scene sceneID="WdY-yg-ct0">
             <objects>
-                <tableViewController restorationIdentifier="ViewController" storyboardIdentifier="ViewController" automaticallyAdjustsScrollViewInsets="NO" id="ncI-2p-cD0" userLabel="ViewController" customClass="MainViewController" customModule="Demo" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="60" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="WxG-Rs-B1j">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                <tableViewController restorationIdentifier="DemoController" storyboardIdentifier="DemoController" automaticallyAdjustsScrollViewInsets="NO" id="ncI-2p-cD0" userLabel="DemoController" customClass="DemoViewController" customModule="Demo" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="60" sectionHeaderHeight="28" sectionFooterHeight="28" id="WxG-Rs-B1j">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <view key="tableFooterView" contentMode="scaleToFill" id="40N-PD-3xl">
-                            <rect key="frame" x="0.0" y="88" width="375" height="1"/>
+                            <rect key="frame" x="0.0" y="72" width="600" height="1"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </view>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Cell" textLabel="Ckn-bP-bKI" detailTextLabel="SGE-V7-zf7" style="IBUITableViewCellStyleSubtitle" id="Tla-ud-LNu">
-                                <rect key="frame" x="0.0" y="28" width="375" height="60"/>
+                                <rect key="frame" x="0.0" y="28" width="600" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Tla-ud-LNu" id="IuM-YI-hVD">
-                                    <rect key="frame" x="0.0" y="0.0" width="375" height="59.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Ckn-bP-bKI">
-                                            <rect key="frame" x="16" y="10" width="33.5" height="20.5"/>
+                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Ckn-bP-bKI">
+                                            <rect key="frame" x="20" y="5" width="33.5" height="20.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="Subtitle" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="SGE-V7-zf7">
-                                            <rect key="frame" x="16" y="33.5" width="44" height="14.5"/>
+                                            <rect key="frame" x="20" y="25.5" width="44" height="14.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                             <nil key="textColor"/>
@@ -54,16 +50,8 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="七天內更新" id="oQZ-6Q-hoK"/>
-                    <connections>
-                        <outlet property="__reloadItem" destination="Sdi-dy-9Qd" id="LYL-kK-2JT"/>
-                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="k37-xN-Hvd" userLabel="First Responder" sceneMemberID="firstResponder"/>
-                <barButtonItem title="更新" id="Sdi-dy-9Qd">
-                    <connections>
-                        <action selector="__reloadItemClicked:" destination="ncI-2p-cD0" id="94L-em-XaX"/>
-                    </connections>
-                </barButtonItem>
             </objects>
             <point key="canvasLocation" x="367" y="151"/>
         </scene>

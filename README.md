@@ -1,18 +1,18 @@
-
-根據這篇 [網路爬蟲][1], 基於 WKWebView, 實做出可以 model 化的爬蟲 Framework
-
-
-## Required ##
-- Xcode 9.3
-- Swift 4.1
+# WabParser
+基於 WKWebView 的 iOS 網路爬蟲.  
+使用方式請參考以下說明或是 [Demo](Demo).
 
 
-## Install ##
-Use carthage.
+## 需求 ##
+- Swift 4.2 以上.
+- iOS 9.0 以上.
+
+
+## 安裝 ##
+Use [Carthage](https://github.com/Carthage/Carthage).
 
 
 ## 使用 ##
-以 [網路爬蟲][1] 文章為例:
 
 **步驟 1: 設置 Model**
 
@@ -27,7 +27,7 @@ struct Comic: Decodable
 **步驟 2: 初始化 WebParser**
 
 ```swift
-let parser: WebParser = WebParser<[Comic]>()
+var parser: WebParser = WebParser<[Comic]>()
 ```
 
 **步驟 3: 設置爬取網址**
@@ -58,22 +58,48 @@ results;
 **步驟 5: 設置返回 Callback**
 
 ```swift
-parser.callback = { (result: WebParser<[Comic]>.Result) in
-    switch result
+parser.callback = { [weak self] status in
+    switch status
     {
-        case let .success(comics):
-        //do success action
-
-        case let .error(e):
-        // do error action
+        case .none:
+            // 初始狀態, 或是 restart 會觸發
+        case .start:
+            // 開始爬取
+        case .cancel:
+            // 已取消爬取
+        case .error:
+           // 爬取失敗
+        case let .success(result):
+           // 爬取成功, 以例子來說 result == [Comic]
     }
 }
 ```
 
-**步驟 6: 開始爬取**
+**步驟 5.5: 設置自定義 UserAgent**
 
 ```swift
-parser.parse()
+parser.customUserAgent = "..."
 ```
 
-[1]: https://shinrenpan.github.io/post/web-parser/
+**步驟 6: 執行**
+
+- 開始爬取
+
+```swift 
+parser.start()
+```
+
+- 重新爬取
+
+```swift
+parser.restart()
+```
+
+- 取消爬取
+
+```swift
+parser.cancel()
+```
+
+> 如果執行過 start(), 或是 cancel(), 要再次爬取一定要使用 **restart()**.  
+> 或是永遠使用 restart() 代替 start()

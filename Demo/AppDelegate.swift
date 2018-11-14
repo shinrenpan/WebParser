@@ -11,7 +11,10 @@ import UIKit
 
 extension AppDelegate: UIApplicationDelegate
 {
-    func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplicationLaunchOptionsKey: Any]?) -> Bool
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool
     {
         return true
     }
