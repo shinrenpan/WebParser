@@ -58,7 +58,6 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
         configure.allowsAirPlayForMediaPlayback = false
         configure.allowsPictureInPictureMediaPlayback = false
         _webView = WKWebView(frame: frame, configuration: configure)
-        _webView.isHidden = true
         super.init()
         _webView.navigationDelegate = self
     }
@@ -72,7 +71,6 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!)
     {
-        __cancelRetry()
         __evaluateJavaScript()
     }
 
@@ -131,6 +129,8 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
     @discardableResult
     private final func __shouldRetry() -> Bool
     {
+        __cancelRetry()
+
         if _retryCount < 0
         {
             parseStatus = .error("Retry maximum")
@@ -147,13 +147,17 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
             return false
         }
 
+        if case .error = parseStatus
+        {
+            return false
+        }
+
         __retry()
         return true
     }
 
     private final func __retry()
     {
-        __cancelRetry()
         _retryCount -= 1
         perform(#selector(__evaluateJavaScript), with: nil, afterDelay: 5.0)
     }
@@ -170,7 +174,9 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
     @objc
     private final func __evaluateJavaScript()
     {
-        guard let javaScript = javaScript else
+        __cancelRetry()
+
+         guard let javaScript = javaScript else
         {
             return parseStatus = .error("Javascript is nil")
         }
