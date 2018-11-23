@@ -53,11 +53,10 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 
     public override init()
     {
-        let frame = CGRect(x: 0, y: 0, width: 320, height: 480)
         let configure: WKWebViewConfiguration = WKWebViewConfiguration()
         configure.allowsAirPlayForMediaPlayback = false
         configure.allowsPictureInPictureMediaPlayback = false
-        _webView = WKWebView(frame: frame, configuration: configure)
+        _webView = WKWebView(frame: .zero, configuration: configure)
         super.init()
         _webView.navigationDelegate = self
     }
@@ -76,6 +75,16 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 
     public func webView(_: WKWebView, didFail navigation: WKNavigation!, withError error: Error)
     {
+        if case .success = parseStatus
+        {
+            return
+        }
+
+        if case .cancel = parseStatus
+        {
+            return
+        }
+
         parseStatus = .error(error.localizedDescription)
     }
 
@@ -85,6 +94,16 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
         withError error: Error
     )
     {
+        if case .success = parseStatus
+        {
+            return
+        }
+
+        if case .cancel = parseStatus
+        {
+            return
+        }
+
         parseStatus = .error(error.localizedDescription)
     }
 
@@ -114,7 +133,7 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 
     public final func restart()
     {
-        parseStatus = .none
+        cancel()
         _retryCount = 5
         start()
     }
@@ -176,7 +195,7 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
     {
         __cancelRetry()
 
-         guard let javaScript = javaScript else
+        guard let javaScript = javaScript else
         {
             return parseStatus = .error("Javascript is nil")
         }
