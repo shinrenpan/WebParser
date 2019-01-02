@@ -4,226 +4,153 @@
 
 import WebKit
 
-public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
+public final class WebParser<T: Decodable>
 {
-    public enum ParserStatus
-    {
-        case none
-        case start
-        case success(T)
-        case cancel
-        case error(String)
-    }
-
+    public weak var delegate: WebParserDelegate?
     public var parseURL: String?
     public var javaScript: String?
-    public var callback: ((ParserStatus) -> Void)?
 
-    private var _retryCount = 5
+    private var _retryCount = 0
     private var _webView: WKWebView
+    private var _timer: DispatchSourceTimer?
 
-    public var customUserAgent: String?
-    {
-        get
-        {
-            return _webView.customUserAgent
-        }
-        set
-        {
-            _webView.customUserAgent = customUserAgent
-        }
-    }
-
-    public private(set) var parseStatus: ParserStatus = .none
-    {
-        didSet
-        {
-            switch parseStatus
-            {
-                case .success, .cancel, .error:
-                    _webView.stopLoading()
-                    fallthrough
-                default:
-                    callback?(parseStatus)
-            }
-        }
-    }
-
-    // MARK: - Init
-
-    public override init()
-    {
-        let configure: WKWebViewConfiguration = WKWebViewConfiguration()
-        configure.allowsAirPlayForMediaPlayback = false
-        configure.allowsPictureInPictureMediaPlayback = false
-        _webView = WKWebView(frame: .zero, configuration: configure)
-        super.init()
-        _webView.navigationDelegate = self
-    }
-
-    // MARK: - WKNavigationDelegate
-
-    public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!)
-    {
-        __shouldRetry()
-    }
-
-    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!)
-    {
-        __evaluateJavaScript()
-    }
-
-    public func webView(_: WKWebView, didFail navigation: WKNavigation!, withError error: Error)
-    {
-        if case .success = parseStatus
-        {
-            return
-        }
-
-        if case .cancel = parseStatus
-        {
-            return
-        }
-
-        parseStatus = .error(error.localizedDescription)
-    }
-
-    public func webView(
-        _ webView: WKWebView,
-        didFailProvisionalNavigation navigation: WKNavigation!,
-        withError error: Error
+    public init(
+        delegate: WebParserDelegate? = nil,
+        customUserAgent: String? = nil
     )
     {
-        if case .success = parseStatus
-        {
-            return
-        }
-
-        if case .cancel = parseStatus
-        {
-            return
-        }
-
-        parseStatus = .error(error.localizedDescription)
+        let configure = WKWebViewConfiguration()
+        configure.allowsAirPlayForMediaPlayback = false
+        configure.allowsPictureInPictureMediaPlayback = false
+        configure.allowsInlineMediaPlayback = false
+        _webView = WKWebView(frame: .zero, configuration: configure)
+        _webView.customUserAgent = customUserAgent
+        self.delegate = delegate
     }
+}
 
-    // MARK: - Public
+// MARK: - Public
 
+extension WebParser
+{
     public final func start()
     {
-        guard let parserURL = parseURL else
+        guard
+            let parseURL = parseURL,
+            let url = URL(string: parseURL)
+        else
         {
-            return parseStatus = .error("URL is nil")
+            let userInfo = [NSLocalizedDescriptionKey: "錯誤的 URL: \(self.parseURL ?? "無 URL")"]
+            let error = NSError(domain: "com.shinrenpan.WebParser", code: -900, userInfo: userInfo)
+            return __failWith(error: error)
         }
 
-        guard let url = URL(string: parserURL) else
-        {
-            return parseStatus = .error("URL is invalid")
-        }
-
-        guard let _ = javaScript else
-        {
-            return parseStatus = .error("Javascript is nil")
-        }
-
-        parseStatus = .start
         let request = URLRequest(url: url)
         _webView.load(request)
-    }
-
-    public final func restart()
-    {
-        cancel()
-        _retryCount = 5
-        start()
+        delegate?.parserDidStart(self)
+        __createTimer()
     }
 
     public final func cancel()
     {
-        parseStatus = .cancel
+        __removeTimer()
+        _webView.stopLoading()
+        delegate?.parserDidCancel(self)
+    }
+}
+
+// MARK: - Private
+
+private extension WebParser
+{
+    final func __createTimer()
+    {
+        __removeTimer()
+        _timer = DispatchSource.makeTimerSource(flags: [], queue: DispatchQueue.main)
+        _timer?.setEventHandler
+        { [weak self] in
+            guard let self = self else
+            {
+                return
+            }
+            self.__evaluateJavaScript()
+        }
+        _timer?.schedule(deadline: .now(), repeating: 1)
+        _timer?.resume()
     }
 
-    // MARK: - Private
-
-    @discardableResult
-    private final func __shouldRetry() -> Bool
+    final func __removeTimer()
     {
-        __cancelRetry()
-
-        if _retryCount < 0
-        {
-            parseStatus = .error("Retry maximum")
-            return false
-        }
-
-        if case .success = parseStatus
-        {
-            return false
-        }
-
-        if case .cancel = parseStatus
-        {
-            return false
-        }
-
-        if case .error = parseStatus
-        {
-            return false
-        }
-
-        __retry()
-        return true
+        _timer?.cancel()
+        _timer = nil
+        _retryCount = 0
     }
 
-    private final func __retry()
+    final func __evaluateJavaScript()
     {
-        _retryCount -= 1
-        perform(#selector(__evaluateJavaScript), with: nil, afterDelay: 5.0)
-    }
-
-    private final func __cancelRetry()
-    {
-        NSObject.cancelPreviousPerformRequests(
-            withTarget: self,
-            selector: #selector(__evaluateJavaScript),
-            object: nil
-        )
-    }
-
-    @objc
-    private final func __evaluateJavaScript()
-    {
-        __cancelRetry()
-
         guard let javaScript = javaScript else
         {
-            return parseStatus = .error("Javascript is nil")
+            let userInfo = [NSLocalizedDescriptionKey: "未設置 JavaScript"]
+            let error = NSError(domain: "com.shinrenpan.WebParser", code: -902, userInfo: userInfo)
+            return __failWith(error: error)
+        }
+
+        if _timer?.isCancelled == true
+        {
+            return
         }
 
         _webView.evaluateJavaScript(javaScript)
         { result, error in
+
             if let _ = error
             {
-                self.__shouldRetry()
-                return
+                return self.__shouldRetry()
             }
 
             guard let result = result else
             {
-                self.__shouldRetry()
-                return
+                return self.__shouldRetry()
             }
 
             do
             {
                 let json: Data = try JSONSerialization.data(withJSONObject: result, options: [])
                 let result = try JSONDecoder().decode(T.self, from: json)
-                self.parseStatus = .success(result)
+                self.__successWith(result: result)
             }
             catch
             {
                 self.__shouldRetry()
             }
         }
+    }
+
+    final func __shouldRetry()
+    {
+        guard _retryCount < 30 else
+        {
+            let userInfo = [NSLocalizedDescriptionKey: "Retry 達最大值: \(_retryCount)"]
+            let error = NSError(domain: "com.shinrenpan.WebParser", code: -901, userInfo: userInfo)
+            return __failWith(error: error)
+        }
+
+        _retryCount += 1
+    }
+
+    final func __failWith(error: Error)
+    {
+        __removeTimer()
+        _webView.stopLoading()
+        _webView.load(URLRequest(url: URL(string: "about:blank")!))
+        delegate?.parserDidFail(self, error: error)
+    }
+
+    final func __successWith(result: T)
+    {
+        __removeTimer()
+        _webView.stopLoading()
+        _webView.load(URLRequest(url: URL(string: "about:blank")!))
+        delegate?.parserDidFinish(self, result: result)
     }
 }

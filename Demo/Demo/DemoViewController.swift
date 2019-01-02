@@ -9,7 +9,6 @@ final class DemoViewController: UITableViewController
 {
     private let _viewModel = DemoViewModel()
     private let _viewOutlet = DemoViewOutlet()
-    private var _parserListener: NSKeyValueObservation?
 }
 
 // MARK: - LifeCycle
@@ -19,7 +18,7 @@ extension DemoViewController
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        __setupParserListener()
+        _viewModel.parser.delegate = self
         __reloadItemAddAction()
     }
 
@@ -29,8 +28,40 @@ extension DemoViewController
 
         if _viewModel.dataSource.isEmpty
         {
-            _viewModel.parser()
+            _viewModel.parse()
         }
+    }
+}
+
+// MARK: - WebParserDelegate
+
+extension DemoViewController: WebParserDelegate
+{
+    func parserDidStart<T>(_ parser: WebParser<T>) where T: Decodable
+    {
+        __setupNavigationRightItemWhenParsing()
+        _viewModel.cleanDataSource()
+        tableView.reloadData()
+    }
+
+    func parserDidFinish<T>(_ parser: WebParser<T>, result: T) where T: Decodable
+    {
+        __setupNavigationRightItemWhenStopParsing()
+        if let result = result as? [Comic]
+        {
+            _viewModel.addComics(result)
+            tableView.reloadData()
+        }
+    }
+
+    func parserDidFail<T>(_ parser: WebParser<T>, error: Error) where T: Decodable
+    {
+        __setupNavigationRightItemWhenStopParsing()
+    }
+
+    func parserDidCancel<T>(_ parser: WebParser<T>) where T: Decodable
+    {
+        __setupNavigationRightItemWhenStopParsing()
     }
 }
 
@@ -57,33 +88,6 @@ extension DemoViewController
 
 private extension DemoViewController
 {
-    final func __setupParserListener()
-    {
-        _parserListener = _viewModel.observe(\DemoViewModel.parserStatus)
-        { [weak self] _, _ in
-            guard let self = self else
-            {
-                return
-            }
-
-            self.__handleParserStatus()
-        }
-    }
-
-    final func __handleParserStatus()
-    {
-        switch _viewModel.parserStatus
-        {
-            case .start:
-                navigationItem.rightBarButtonItem = _viewOutlet.loadingItem
-            case .success:
-                tableView.reloadData()
-                fallthrough
-            default:
-                navigationItem.rightBarButtonItem = _viewOutlet.updateItem
-        }
-    }
-
     final func __reloadItemAddAction()
     {
         _viewOutlet.updateItem.target = self
@@ -93,6 +97,16 @@ private extension DemoViewController
     @objc
     final func __reloadItemClicked(_ sedner: UIBarButtonItem)
     {
-        _viewModel.parser()
+        _viewModel.parse()
+    }
+
+    final func __setupNavigationRightItemWhenParsing()
+    {
+        navigationItem.rightBarButtonItem = _viewOutlet.loadingItem
+    }
+
+    final func __setupNavigationRightItemWhenStopParsing()
+    {
+        navigationItem.rightBarButtonItem = _viewOutlet.updateItem
     }
 }

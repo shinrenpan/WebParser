@@ -4,18 +4,7 @@
 
 import UIKit
 
-@UIApplicationMain class AppDelegate: UIResponder
+@UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate
 {
     var window: UIWindow?
-}
-
-extension AppDelegate: UIApplicationDelegate
-{
-    func application(
-        _ application: UIApplication,
-        didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]? = nil
-    ) -> Bool
-    {
-        return true
-    }
 }

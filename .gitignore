@@ -8,6 +8,7 @@
 # Carthage/Checkouts
 
 Carthage/Build
+*.zip
 
 ### CocoaPods ###
 ## CocoaPods GitIgnore Template
