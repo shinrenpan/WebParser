@@ -101,7 +101,11 @@ private extension WebParser
         }
 
         _webView.evaluateJavaScript(javaScript)
-        { result, error in
+        { [weak self] result, error in
+            guard let self = self else
+            {
+                return
+            }
 
             if let _ = error
             {
