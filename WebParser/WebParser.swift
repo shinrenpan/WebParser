@@ -9,8 +9,29 @@ public final class WebParser<T: Decodable>
     public weak var delegate: WebParserDelegate?
     public var parseURL: String?
     public var javaScript: String?
+    public var delayTime: Double = 2
+    {
+        didSet
+        {
+            if delayTime < 1
+            {
+                delayTime = 1
+            }
+        }
+    }
 
-    private var _retryCount = 0
+    public var retryCount: UInt = 5
+    {
+        didSet
+        {
+            if retryCount < 1
+            {
+                retryCount = 1
+            }
+        }
+    }
+
+    private var _currentRetryCount = 0
     private var _webView: WKWebView
     private var _timer: DispatchSourceTimer?
 
@@ -29,6 +50,27 @@ public final class WebParser<T: Decodable>
     }
 }
 
+extension WebParser
+{
+    enum ParseError: Error, LocalizedError
+    {
+        case invalidURL, noneJavaScript, retryMaximum
+
+        var errorDescription: String?
+        {
+            switch self
+            {
+                case .invalidURL:
+                    return "無效的網址"
+                case .noneJavaScript:
+                    return "未設置 JavaScript"
+                case .retryMaximum:
+                    return "Retry 達最大值"
+            }
+        }
+    }
+}
+
 // MARK: - Public
 
 extension WebParser
@@ -40,9 +82,7 @@ extension WebParser
             let url = URL(string: parseURL)
         else
         {
-            let userInfo = [NSLocalizedDescriptionKey: "錯誤的 URL: \(self.parseURL ?? "無 URL")"]
-            let error = NSError(domain: "com.shinrenpan.WebParser", code: -900, userInfo: userInfo)
-            return __failWith(error: error)
+            return __failWith(error: ParseError.invalidURL)
         }
 
         let request = URLRequest(url: url)
@@ -75,7 +115,7 @@ private extension WebParser
             }
             self.__evaluateJavaScript()
         }
-        _timer?.schedule(deadline: .now(), repeating: 1)
+        _timer?.schedule(deadline: .now() + delayTime, repeating: Double(retryCount))
         _timer?.resume()
     }
 
@@ -83,16 +123,14 @@ private extension WebParser
     {
         _timer?.cancel()
         _timer = nil
-        _retryCount = 0
+        _currentRetryCount = 0
     }
 
     final func __evaluateJavaScript()
     {
         guard let javaScript = javaScript else
         {
-            let userInfo = [NSLocalizedDescriptionKey: "未設置 JavaScript"]
-            let error = NSError(domain: "com.shinrenpan.WebParser", code: -902, userInfo: userInfo)
-            return __failWith(error: error)
+            return __failWith(error: ParseError.noneJavaScript)
         }
 
         if _timer?.isCancelled == true
@@ -132,14 +170,12 @@ private extension WebParser
 
     final func __shouldRetry()
     {
-        guard _retryCount < 30 else
+        guard _currentRetryCount < retryCount else
         {
-            let userInfo = [NSLocalizedDescriptionKey: "Retry 達最大值: \(_retryCount)"]
-            let error = NSError(domain: "com.shinrenpan.WebParser", code: -901, userInfo: userInfo)
-            return __failWith(error: error)
+            return __failWith(error: ParseError.retryMaximum)
         }
 
-        _retryCount += 1
+        _currentRetryCount += 1
     }
 
     final func __failWith(error: Error)
