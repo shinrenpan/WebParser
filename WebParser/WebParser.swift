@@ -44,7 +44,7 @@ public final class WebParser<T: Decodable>
         configure.allowsAirPlayForMediaPlayback = false
         configure.allowsPictureInPictureMediaPlayback = false
         configure.allowsInlineMediaPlayback = false
-        _webView = WKWebView(frame: .zero, configuration: configure)
+        _webView = WKWebView(frame: UIScreen.main.nativeBounds, configuration: configure)
         _webView.customUserAgent = customUserAgent
         self.delegate = delegate
     }

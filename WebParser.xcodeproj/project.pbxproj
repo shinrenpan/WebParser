@@ -83,16 +83,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D76C5C76097EEB177EA686475F094619 /* Demo */ = {
-			isa = PBXGroup;
-			children = (
-				285671388C59B384178FD5D060B46082 /* DemoViewController.swift */,
-				6D902F52C6BD181EEF0ADB387F4BAFE9 /* DemoViewModel.swift */,
-				B7E70E330F6A9D41126DAF55D84CEA77 /* DemoViewOutlet.swift */,
-			);
-			path = Demo;
-			sourceTree = "<group>";
-		};
 		6B52F357A083B3D8956678E4F12FC7C2 /* Model */ = {
 			isa = PBXGroup;
 			children = (
@@ -140,6 +130,16 @@
 				C50C050AD29F2CDFAA1C2B6D871B9890 /* Main.storyboard */,
 			);
 			name = Storyboard;
+			sourceTree = "<group>";
+		};
+		D76C5C76097EEB177EA686475F094619 /* Demo */ = {
+			isa = PBXGroup;
+			children = (
+				285671388C59B384178FD5D060B46082 /* DemoViewController.swift */,
+				6D902F52C6BD181EEF0ADB387F4BAFE9 /* DemoViewModel.swift */,
+				B7E70E330F6A9D41126DAF55D84CEA77 /* DemoViewOutlet.swift */,
+			);
+			path = Demo;
 			sourceTree = "<group>";
 		};
 		DB1DB422C5CAF27C98E1785D516C0A96 /* Products */ = {
