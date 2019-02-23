@@ -7,6 +7,7 @@ import WebKit
 public final class WebParser<T: Decodable>
 {
     public weak var delegate: WebParserDelegate?
+    public var customUserAgent: String?
     public var parseURL: String?
     public var javaScript: String?
     public var delayTime: Double = 2
@@ -32,7 +33,7 @@ public final class WebParser<T: Decodable>
     }
 
     private var _currentRetryCount = 0
-    private var _webView: WKWebView
+    private var _webView: WKWebView?
     private var _timer: DispatchSourceTimer?
 
     public init(
@@ -40,13 +41,8 @@ public final class WebParser<T: Decodable>
         customUserAgent: String? = nil
     )
     {
-        let configure = WKWebViewConfiguration()
-        configure.allowsAirPlayForMediaPlayback = false
-        configure.allowsPictureInPictureMediaPlayback = false
-        configure.allowsInlineMediaPlayback = false
-        _webView = WKWebView(frame: UIScreen.main.nativeBounds, configuration: configure)
-        _webView.customUserAgent = customUserAgent
         self.delegate = delegate
+        self.customUserAgent = customUserAgent
     }
 }
 
@@ -54,7 +50,7 @@ extension WebParser
 {
     enum ParseError: Error, LocalizedError
     {
-        case invalidURL, noneJavaScript, retryMaximum
+        case invalidURL, noneJavaScript, retryMaximum, noneWebView
 
         var errorDescription: String?
         {
@@ -66,6 +62,8 @@ extension WebParser
                     return "未設置 JavaScript"
                 case .retryMaximum:
                     return "Retry 達最大值"
+                case .noneWebView:
+                    return "初始化 WebView 失敗"
             }
         }
     }
@@ -85,8 +83,15 @@ extension WebParser
             return __failWith(error: ParseError.invalidURL)
         }
 
+        __createWebView()
+
+        guard let webView = _webView else
+        {
+            return __failWith(error: ParseError.noneWebView)
+        }
+
         let request = URLRequest(url: url)
-        _webView.load(request)
+        webView.load(request)
         delegate?.parserDidStart(self)
         __createTimer()
     }
@@ -94,12 +99,12 @@ extension WebParser
     public final func cancel()
     {
         __removeTimer()
-        _webView.stopLoading()
+        __removeWebView()
         delegate?.parserDidCancel(self)
     }
 }
 
-// MARK: - Private
+// MARK: - Timer
 
 private extension WebParser
 {
@@ -125,7 +130,35 @@ private extension WebParser
         _timer = nil
         _currentRetryCount = 0
     }
+}
 
+// MARK: - WebView
+
+private extension WebParser
+{
+    final func __createWebView()
+    {
+        __removeWebView()
+
+        let configure = WKWebViewConfiguration()
+        configure.allowsAirPlayForMediaPlayback = false
+        configure.allowsPictureInPictureMediaPlayback = false
+        configure.allowsInlineMediaPlayback = false
+        _webView = WKWebView(frame: UIScreen.main.nativeBounds, configuration: configure)
+        _webView?.customUserAgent = customUserAgent
+    }
+
+    final func __removeWebView()
+    {
+        _webView?.stopLoading()
+        _webView = nil
+    }
+}
+
+// MARK: - Parsing
+
+private extension WebParser
+{
     final func __evaluateJavaScript()
     {
         guard let javaScript = javaScript else
@@ -138,7 +171,12 @@ private extension WebParser
             return
         }
 
-        _webView.evaluateJavaScript(javaScript)
+        guard let webView = _webView else
+        {
+            return __failWith(error: ParseError.noneWebView)
+        }
+
+        webView.evaluateJavaScript(javaScript)
         { [weak self] result, error in
             guard let self = self else
             {
@@ -177,20 +215,23 @@ private extension WebParser
 
         _currentRetryCount += 1
     }
+}
 
+// MARK: - Result
+
+private extension WebParser
+{
     final func __failWith(error: Error)
     {
         __removeTimer()
-        _webView.stopLoading()
-        _webView.load(URLRequest(url: URL(string: "about:blank")!))
+        __removeWebView()
         delegate?.parserDidFail(self, error: error)
     }
 
     final func __successWith(result: T)
     {
         __removeTimer()
-        _webView.stopLoading()
-        _webView.load(URLRequest(url: URL(string: "about:blank")!))
+        __removeWebView()
         delegate?.parserDidFinish(self, result: result)
     }
 }
