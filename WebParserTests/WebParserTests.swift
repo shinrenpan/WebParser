@@ -27,29 +27,22 @@ extension WebParserTests
         _parser.customUserAgent = "iOS"
         _parser.delayTime = 2
         _parser.retryCount = 5
-        _parser.delegate = self
+
+        _parser.didSuccess = {
+            [weak self] (result) in
+            self?._dataSource = result
+            self?._expectation.fulfill()
+        }
+
+        _parser.didFail = {
+            [weak self] _ in
+            self?._expectation.fulfill()
+        }
+
         _parser.start()
 
         wait(for: [_expectation], timeout: 12)
         XCTAssertNotNil(_dataSource, "Parser Fail")
-    }
-}
-
-extension WebParserTests: WebParserDelegate
-{
-    func parserDidFinish<T>(_ parser: WebParser<T>, result: T) where T: Decodable
-    {
-        if let result = result as? [Comic], result.count > 0
-        {
-            _dataSource = result
-        }
-
-        _expectation.fulfill()
-    }
-
-    func parserDidFail<T>(_ parser: WebParser<T>, error: Error) where T: Decodable
-    {
-        _expectation.fulfill()
     }
 }
 
