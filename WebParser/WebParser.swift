@@ -4,7 +4,7 @@
 
 import WebKit
 
-public final class WebParser<T: Decodable>
+public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 {
     public var didStart: (() -> Void)?
     public var didSuccess: ((T) -> Void)?
@@ -42,14 +42,24 @@ public final class WebParser<T: Decodable>
     private var _webView: WKWebView?
     private var _timer: DispatchSourceTimer?
 
-    public init() {}
+    // MARK: - WKNavigationDelegate
+
+    public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error)
+    {
+        __failWith(error: .webviewFailure)
+    }
+
+    public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error)
+    {
+        __failWith(error: .webviewFailure)
+    }
 }
 
 public extension WebParser
 {
-    public enum ParseError: Error, LocalizedError
+    enum ParseError: Error, LocalizedError
     {
-        case invalidURL, noneJavaScript, retryMaximum, noneWebView
+        case invalidURL, noneJavaScript, retryMaximum, noneWebView, webviewFailure
 
         public var errorDescription: String?
         {
@@ -63,6 +73,8 @@ public extension WebParser
                     return "Retry 達最大值"
                 case .noneWebView:
                     return "初始化 WebView 失敗"
+            case .webviewFailure:
+                    return "WKWebView 失敗"
             }
         }
     }
@@ -156,10 +168,12 @@ private extension WebParser
         configure.allowsInlineMediaPlayback = false
         _webView = WKWebView(frame: UIScreen.main.bounds, configuration: configure)
         _webView?.customUserAgent = customUserAgent
+        _webView?.navigationDelegate = self
     }
 
     final func __removeWebView()
     {
+        _webView?.navigationDelegate = nil
         _webView?.stopLoading()
         _webView = nil
     }
