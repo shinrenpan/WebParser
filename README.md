@@ -34,14 +34,15 @@ parser.javaScript = ...
 // 客製化 UserAgent, 非必要
 parser.customUserAgent = ...
 
-// 每次解析的間隔時間, default = 2, 需 >= 1
+// 每次解析的間隔時間, 非必要, default = 2, 需 >= 1
 parser.delayTime = 2
 
-// 嘗試解析的次數, default = 5, 需 >= 1
+// 嘗試解析的次數, 非必要, default = 5, 需 >= 1
 parser.retryCount = 5
 
-// 設置 Delegation
-parser.delegate = self
+// WKWebsiteDataStore, 非必要, default = WKWebsiteDataStore.default()
+parser.websiteDataStore = ...
+
 ```
 
 開始爬取
@@ -59,13 +60,12 @@ parser.cancel()
 
 ## Handle ##
 
-使用 Delegation 方式處理.
+使用 Closure 方式處理.
 
 開始爬取
 
 ```swift
-func parserDidStart<T>(_ parser: WebParser<T>) where T : Decodable
-{
+parser.didStart = {
     // parser.start() 觸發
 }
 ```
@@ -73,8 +73,7 @@ func parserDidStart<T>(_ parser: WebParser<T>) where T : Decodable
 取消爬取
 
 ```swift
-func parserDidCancel<T>(_ parser: WebParser<T>) where T : Decodable {
-{
+parser.didCancel = {
     // parser.cancel() 觸發
 }
 ```
@@ -82,8 +81,7 @@ func parserDidCancel<T>(_ parser: WebParser<T>) where T : Decodable {
 爬取失敗
 
 ```swift
-func parserDidFail<T>(_ parser: WebParser<T>, error: Error) where T: Decodable
-{
+parser.didFail = { (ParseError) in
     // 失敗時觸發
 }
 ```
@@ -91,14 +89,8 @@ func parserDidFail<T>(_ parser: WebParser<T>, error: Error) where T: Decodable
 爬取成功
 
 ```swift
-func parserDidFinish<T>(_ parser: WebParser<T>, result: T) where T: Decodable
-{
+parser.didSuccess = { (T) in
     // 成功時觸發
-    // 取得正確 Result
-    if let result = result as? [Comic]
-    {
-        
-    }
 }
 ```
 

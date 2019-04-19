@@ -4,12 +4,18 @@
 
 import WebKit
 
-public final class WebParser<T: Decodable>
+public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 {
-    public weak var delegate: WebParserDelegate?
+    public var didStart: (() -> Void)?
+    public var didSuccess: ((T) -> Void)?
+    public var didFail: ((ParseError) -> Void)?
+    public var didCancel: (() -> Void)?
+
     public var customUserAgent: String?
     public var parseURL: String?
     public var javaScript: String?
+    public var websiteDataStore: WKWebsiteDataStore = WKWebsiteDataStore.default()
+    
     public var delayTime: Double = 2
     {
         didSet
@@ -36,23 +42,26 @@ public final class WebParser<T: Decodable>
     private var _webView: WKWebView?
     private var _timer: DispatchSourceTimer?
 
-    public init(
-        delegate: WebParserDelegate? = nil,
-        customUserAgent: String? = nil
-    )
+    // MARK: - WKNavigationDelegate
+
+    public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error)
     {
-        self.delegate = delegate
-        self.customUserAgent = customUserAgent
+        __failWith(error: .webviewFailure)
+    }
+
+    public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error)
+    {
+        __failWith(error: .webviewFailure)
     }
 }
 
-extension WebParser
+public extension WebParser
 {
     enum ParseError: Error, LocalizedError
     {
-        case invalidURL, noneJavaScript, retryMaximum, noneWebView
+        case invalidURL, noneJavaScript, retryMaximum, noneWebView, webviewFailure
 
-        var errorDescription: String?
+        public var errorDescription: String?
         {
             switch self
             {
@@ -64,6 +73,8 @@ extension WebParser
                     return "Retry 達最大值"
                 case .noneWebView:
                     return "初始化 WebView 失敗"
+            case .webviewFailure:
+                    return "WKWebView 失敗"
             }
         }
     }
@@ -71,14 +82,19 @@ extension WebParser
 
 // MARK: - Public
 
-extension WebParser
+public extension WebParser
 {
-    public final func start()
+    final func start()
     {
-        guard
-            let parseURL = parseURL,
-            let url = URL(string: parseURL)
-        else
+        __removeTimer()
+        __removeWebView()
+
+        guard let parseURL = parseURL else
+        {
+            return __failWith(error: ParseError.invalidURL)
+        }
+        
+        guard let url = URL(string: parseURL) else
         {
             return __failWith(error: ParseError.invalidURL)
         }
@@ -92,15 +108,15 @@ extension WebParser
 
         let request = URLRequest(url: url)
         webView.load(request)
-        delegate?.parserDidStart(self)
+        didStart?()
         __createTimer()
     }
 
-    public final func cancel()
+    final func cancel()
     {
         __removeTimer()
         __removeWebView()
-        delegate?.parserDidCancel(self)
+        didCancel?()
     }
 }
 
@@ -110,16 +126,18 @@ private extension WebParser
 {
     final func __createTimer()
     {
-        __removeTimer()
+        if let _ = _timer
+        {
+            __removeTimer()
+        }
+
         _timer = DispatchSource.makeTimerSource(flags: [], queue: DispatchQueue.main)
+
         _timer?.setEventHandler
         { [weak self] in
-            guard let self = self else
-            {
-                return
-            }
-            self.__evaluateJavaScript()
+            self?.__evaluateJavaScript()
         }
+
         _timer?.schedule(deadline: .now() + delayTime, repeating: Double(retryCount))
         _timer?.resume()
     }
@@ -138,18 +156,24 @@ private extension WebParser
 {
     final func __createWebView()
     {
-        __removeWebView()
+        if let _ = _webView
+        {
+            __removeWebView()
+        }
 
         let configure = WKWebViewConfiguration()
+        configure.websiteDataStore = websiteDataStore
         configure.allowsAirPlayForMediaPlayback = false
         configure.allowsPictureInPictureMediaPlayback = false
         configure.allowsInlineMediaPlayback = false
-        _webView = WKWebView(frame: UIScreen.main.nativeBounds, configuration: configure)
+        _webView = WKWebView(frame: UIScreen.main.bounds, configuration: configure)
         _webView?.customUserAgent = customUserAgent
+        _webView?.navigationDelegate = self
     }
 
     final func __removeWebView()
     {
+        _webView?.navigationDelegate = nil
         _webView?.stopLoading()
         _webView = nil
     }
@@ -177,31 +201,28 @@ private extension WebParser
         }
 
         webView.evaluateJavaScript(javaScript)
-        { [weak self] result, error in
-            guard let self = self else
-            {
-                return
-            }
-
+        { [weak self] (result, error) in
             if let _ = error
             {
-                return self.__shouldRetry()
+                self?.__shouldRetry()
+                return
             }
 
             guard let result = result else
             {
-                return self.__shouldRetry()
+                self?.__shouldRetry()
+                return
             }
 
             do
             {
-                let json: Data = try JSONSerialization.data(withJSONObject: result, options: [])
+                let json = try JSONSerialization.data(withJSONObject: result, options: [])
                 let result = try JSONDecoder().decode(T.self, from: json)
-                self.__successWith(result: result)
+                self?.__successWith(result: result)
             }
             catch
             {
-                self.__shouldRetry()
+                self?.__shouldRetry()
             }
         }
     }
@@ -221,17 +242,17 @@ private extension WebParser
 
 private extension WebParser
 {
-    final func __failWith(error: Error)
+    final func __failWith(error: ParseError)
     {
         __removeTimer()
         __removeWebView()
-        delegate?.parserDidFail(self, error: error)
+        didFail?(error)
     }
 
     final func __successWith(result: T)
     {
         __removeTimer()
         __removeWebView()
-        delegate?.parserDidFinish(self, result: result)
+        didSuccess?(result)
     }
 }
