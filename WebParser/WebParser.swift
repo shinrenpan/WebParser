@@ -59,7 +59,7 @@ public extension WebParser
 {
     enum ParseError: Error, LocalizedError
     {
-        case invalidURL, noneJavaScript, retryMaximum, noneWebView, webviewFailure
+        case invalidURL, noneJavaScript, retryMaximum, noneWebView, webviewFailure, decodeFailure
 
         public var errorDescription: String?
         {
@@ -73,8 +73,10 @@ public extension WebParser
                     return "Retry 達最大值"
                 case .noneWebView:
                     return "初始化 WebView 失敗"
-            case .webviewFailure:
+                case .webviewFailure:
                     return "WKWebView 失敗"
+                case .decodeFailure:
+                    return "JSON Decode 失敗"
             }
         }
     }
@@ -222,7 +224,7 @@ private extension WebParser
             }
             catch
             {
-                self?.__shouldRetry()
+                self?.__failWith(error: .decodeFailure)
             }
         }
     }
