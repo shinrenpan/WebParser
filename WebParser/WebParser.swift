@@ -2,9 +2,9 @@
 //  Copyright (c) 2018年 shinren.pan@gmail.com All rights reserved.
 //
 
-import WebKit
+import UIKit
 
-public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
+public final class WebParser<T: Decodable>: NSObject, UIWebViewDelegate
 {
     public var didStart: (() -> Void)?
     public var didSuccess: ((T) -> Void)?
@@ -14,8 +14,7 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
     public var customUserAgent: String?
     public var parseURL: String?
     public var javaScript: String?
-    public var websiteDataStore: WKWebsiteDataStore = WKWebsiteDataStore.default()
-    
+
     public var delayTime: Double = 2
     {
         didSet
@@ -39,17 +38,10 @@ public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
     }
 
     private var _currentRetryCount = 0
-    private var _webView: WKWebView?
+    private var _webView: UIWebView?
     private var _timer: DispatchSourceTimer?
 
-    // MARK: - WKNavigationDelegate
-
-    public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error)
-    {
-        __failWith(error: .webviewFailure)
-    }
-
-    public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error)
+    public func webView(_ webView: UIWebView, didFailLoadWithError error: Error)
     {
         __failWith(error: .webviewFailure)
     }
@@ -108,8 +100,9 @@ public extension WebParser
             return __failWith(error: ParseError.noneWebView)
         }
 
-        let request = URLRequest(url: url)
-        webView.load(request)
+        var request = URLRequest(url: url)
+        request.timeoutInterval = Double(retryCount) * delayTime
+        webView.loadRequest(request)
         didStart?()
         __createTimer()
     }
@@ -163,19 +156,23 @@ private extension WebParser
             __removeWebView()
         }
 
-        let configure = WKWebViewConfiguration()
-        configure.websiteDataStore = websiteDataStore
-        configure.allowsAirPlayForMediaPlayback = false
-        configure.allowsPictureInPictureMediaPlayback = false
-        configure.allowsInlineMediaPlayback = false
-        _webView = WKWebView(frame: UIScreen.main.bounds, configuration: configure)
-        _webView?.customUserAgent = customUserAgent
-        _webView?.navigationDelegate = self
+        _webView = UIWebView(frame: UIScreen.main.bounds)
+        _webView?.allowsInlineMediaPlayback = false
+        _webView?.allowsPictureInPictureMediaPlayback = false
+        
+        if let customUserAgent = customUserAgent
+        {
+            UserDefaults.standard.register(
+                defaults: ["UserAgent": customUserAgent]
+            )
+        }
+
+        _webView?.delegate = self
     }
 
     final func __removeWebView()
     {
-        _webView?.navigationDelegate = nil
+        _webView?.delegate = nil
         _webView?.stopLoading()
         _webView = nil
     }
@@ -202,30 +199,30 @@ private extension WebParser
             return __failWith(error: ParseError.noneWebView)
         }
 
-        webView.evaluateJavaScript(javaScript)
-        { [weak self] (result, error) in
-            if let _ = error
-            {
-                self?.__shouldRetry()
-                return
-            }
+        guard
+            let result = webView.stringByEvaluatingJavaScript(from: javaScript),
+            result.count > 0
+        else
+        {
+            return __shouldRetry()
+        }
 
-            guard let result = result else
-            {
-                self?.__shouldRetry()
-                return
-            }
+        guard
+            let data = result.data(using: .utf8),
+            data.count > 0
+        else
+        {
+            return __shouldRetry()
+        }
 
-            do
-            {
-                let json = try JSONSerialization.data(withJSONObject: result, options: [])
-                let result = try JSONDecoder().decode(T.self, from: json)
-                self?.__successWith(result: result)
-            }
-            catch
-            {
-                self?.__failWith(error: .decodeFailure)
-            }
+        do
+        {
+            let result = try JSONDecoder().decode(T.self, from: data)
+            __successWith(result: result)
+        }
+        catch
+        {
+            __failWith(error: .decodeFailure)
         }
     }
 

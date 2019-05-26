@@ -35,7 +35,7 @@ extension WebParserTests
         }
 
         _parser.didFail = {
-            [weak self] _ in
+            [weak self] r in
             self?._expectation.fulfill()
         }
 
@@ -67,7 +67,7 @@ private extension WebParserTests
             results.push(comic);
         });
 
-        results;
+        JSON.stringify(results);
         """
     }
 }
