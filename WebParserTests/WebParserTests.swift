@@ -14,7 +14,7 @@ struct Comic: Decodable
 class WebParserTests: XCTestCase
 {
     private var _expectation = XCTestExpectation(description: "TestParser")
-    private var _parser = WebParser<[Comic]>()
+    private lazy var _parser = __initParser()
     private var _dataSource: [Comic]?
 }
 
@@ -22,14 +22,8 @@ extension WebParserTests
 {
     final func testParser()
     {
-        _parser.parseURL = __parserURL()
-        _parser.javaScript = __javaScript()
-        _parser.customUserAgent = "iOS"
-        _parser.delayTime = 2
-        _parser.retryCount = 5
-
         _parser.didSuccess = {
-            [weak self] (result) in
+            [weak self] result in
             self?._dataSource = result
             self?._expectation.fulfill()
         }
@@ -39,21 +33,17 @@ extension WebParserTests
             self?._expectation.fulfill()
         }
 
-        _parser.start()
+        let JavaScript = __JavaScript()
+        _parser.parseUsing(JavaScript: JavaScript)
 
-        wait(for: [_expectation], timeout: 12)
+        wait(for: [_expectation], timeout: _parser.config.timeOut)
         XCTAssertNotNil(_dataSource, "Parser Fail")
     }
 }
 
 private extension WebParserTests
 {
-    final func __parserURL() -> String
-    {
-        return "https://tw.manhuagui.com/update/"
-    }
-
-    final func __javaScript() -> String
+    final func __JavaScript() -> String
     {
         return """
         var results = [];
@@ -69,5 +59,12 @@ private extension WebParserTests
 
         results;
         """
+    }
+
+    final func __initParser() -> WebParser<[Comic]>
+    {
+        let url = "https://tw.manhuagui.com/update/"
+        let config = WebParserConfiguration(urlString: url)
+        return WebParser<[Comic]>(config: config)
     }
 }

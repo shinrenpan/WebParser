@@ -16,39 +16,23 @@ struct Comic: Decodable
 }
 ```
 
-初始化 Parser
-
+初始化 Parser 與設置
 ```swift
-let parser = WebParser<[Comic]>()
+let config = WebParserConfiguration(
+    delayTime: 2.0, // 每個 Retry 的間隔, Default = 2.0
+    retryCount: 5,  // Retry 的次數, Default = 5
+    customUserAgent: "iOS", // 自定義 User-Agent, Default = nil
+    urlString: "https://someurl" // 要爬取的 URL String
+)
+
+let parser = WebParser<[Comic]>(config: config)
 ```
 
-設置設定
+開始使用 JavaScript 爬取
 
 ```swift
-// 要爬取的網址, 必要
-parser.parseURL = ...
-
-// 爬取用的 JavaScript, 必要 
-parser.javaScript = ...
-
-// 客製化 UserAgent, 非必要
-parser.customUserAgent = ...
-
-// 每次解析的間隔時間, 非必要, default = 2, 需 >= 1
-parser.delayTime = 2
-
-// 嘗試解析的次數, 非必要, default = 5, 需 >= 1
-parser.retryCount = 5
-
-// WKWebsiteDataStore, 非必要, default = WKWebsiteDataStore.default()
-parser.websiteDataStore = ...
-
-```
-
-開始爬取
-
-```swift
-parser.start()
+let JavaScript = "Some JavaScript"
+parser.parseUsing(JavaScript: JavaScript)
 ```
 
 取消爬取
@@ -81,7 +65,7 @@ parser.didCancel = {
 爬取失敗
 
 ```swift
-parser.didFail = { (ParseError) in
+parser.didFail = { error: WebParserError in
     // 失敗時觸發
 }
 ```
@@ -89,7 +73,7 @@ parser.didFail = { (ParseError) in
 爬取成功
 
 ```swift
-parser.didSuccess = { (T) in
+parser.didSuccess = { result: T in
     // 成功時觸發
 }
 ```

@@ -4,116 +4,129 @@
 
 import WebKit
 
+/// Web 爬蟲
 public final class WebParser<T: Decodable>: NSObject, WKNavigationDelegate
 {
+    /// 開始爬取的 callback
     public var didStart: (() -> Void)?
+
+    /// 爬取成功的 callback
     public var didSuccess: ((T) -> Void)?
-    public var didFail: ((ParseError) -> Void)?
+
+    /// 爬取失敗的 callback
+    public var didFail: ((WebParserError) -> Void)?
+
+    /// 取消爬取的 callback
     public var didCancel: (() -> Void)?
 
-    public var customUserAgent: String?
-    public var parseURL: String?
-    public var javaScript: String?
-    public var websiteDataStore: WKWebsiteDataStore = WKWebsiteDataStore.default()
-    
-    public var delayTime: Double = 2
-    {
-        didSet
-        {
-            if delayTime < 1
-            {
-                delayTime = 1
-            }
-        }
-    }
+    /// 爬取設置條件
+    public let config: WebParserConfiguration
 
-    public var retryCount: UInt = 5
-    {
-        didSet
-        {
-            if retryCount < 1
-            {
-                retryCount = 1
-            }
-        }
-    }
+    /// 目前 Retry 的次數
+    private var _currentRetryCount: UInt = 0
 
-    private var _currentRetryCount = 0
+    /// WebView
     private var _webView: WKWebView?
+
+    /// Retry 的 Timer
     private var _timer: DispatchSourceTimer?
+
+    /// 要執行的 JavaScript
+    private var _JavaScript: String?
+    
+    /// 初始化
+    /// - Parameter config: 爬取條件
+    public init(config: WebParserConfiguration)
+    {
+        self.config = config
+    }
 
     // MARK: - WKNavigationDelegate
 
+    public func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void)
+    {
+        var _cookies: [HTTPCookie] = []
+
+        // 將 Cookie 存起來
+        if #available(iOS 12, *)
+        {
+            let cookieStore = webView.configuration.websiteDataStore.httpCookieStore
+
+            cookieStore.getAllCookies { cookies in
+               _cookies = cookies
+            }
+        }
+        else
+        {
+            if
+                let response = navigationResponse.response as? HTTPURLResponse,
+                let header = response.allHeaderFields as? [String: String],
+                let url = response.url
+            {
+                _cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: url)
+            }
+        }
+
+        HTTPCookieStorage.shared.setCookies(
+            _cookies,
+            for: navigationResponse.response.url,
+            mainDocumentURL: nil
+        )
+
+        decisionHandler(.allow)
+    }
+    
     public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error)
     {
-        __failWith(error: .webviewFailure)
+        switch error
+        {
+            case let error as URLError where error.code == .timedOut:
+                __failWith(error: .timeOut)
+            default:
+                __failWith(error: .webviewFailure)
+        }
     }
 
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error)
     {
-        __failWith(error: .webviewFailure)
-    }
-}
-
-public extension WebParser
-{
-    enum ParseError: Error, LocalizedError
-    {
-        case invalidURL, noneJavaScript, retryMaximum, noneWebView, webviewFailure, decodeFailure
-
-        public var errorDescription: String?
+        switch error
         {
-            switch self
-            {
-                case .invalidURL:
-                    return "無效的網址"
-                case .noneJavaScript:
-                    return "未設置 JavaScript"
-                case .retryMaximum:
-                    return "Retry 達最大值"
-                case .noneWebView:
-                    return "初始化 WebView 失敗"
-                case .webviewFailure:
-                    return "WKWebView 失敗"
-                case .decodeFailure:
-                    return "JSON Decode 失敗"
-            }
+            case let error as URLError where error.code == .timedOut:
+                __failWith(error: .timeOut)
+            default:
+                __failWith(error: .webviewFailure)
         }
     }
 }
 
-// MARK: - Public
+// MARK: - Public function
 
 public extension WebParser
 {
-    final func start()
+    /// 開始使用 JavaScript 爬取
+    /// - Parameter JavaScript: 要執行的爬取 JavaScript
+    final func parseUsing(JavaScript: String)
     {
         __removeTimer()
         __removeWebView()
 
-        guard let parseURL = parseURL else
+        if __validateUrl(config.urlString) == false
         {
-            return __failWith(error: ParseError.invalidURL)
-        }
-        
-        guard let url = URL(string: parseURL) else
-        {
-            return __failWith(error: ParseError.invalidURL)
+            return __failWith(error: .invalidURL)
         }
 
-        __createWebView()
-
-        guard let webView = _webView else
+        guard let url = URL(string: config.urlString) else
         {
-            return __failWith(error: ParseError.noneWebView)
+            return __failWith(error: .invalidURL)
         }
 
-        let request = URLRequest(url: url)
-        webView.load(request)
         didStart?()
+        _JavaScript = JavaScript
+        __createWebViewWith(url: url)
         __createTimer()
     }
 
+    /// 取消爬取
     final func cancel()
     {
         __removeTimer()
@@ -122,16 +135,49 @@ public extension WebParser
     }
 }
 
-// MARK: - Timer
+// MARK: - Private function
 
 private extension WebParser
 {
+    /// 創建 WebView
+    /// - Parameter url: 要爬取的 URL
+    final func __createWebViewWith(url: URL)
+    {
+        let configure = WKWebViewConfiguration()
+        // 共用 Cookie
+        configure.processPool = WebParserCookiePool.shared
+        configure.websiteDataStore = WKWebsiteDataStore.nonPersistent()
+        configure.allowsAirPlayForMediaPlayback = false
+        configure.allowsPictureInPictureMediaPlayback = false
+        configure.allowsInlineMediaPlayback = false
+        _webView = WKWebView(frame: UIScreen.main.bounds, configuration: configure)
+        _webView?.customUserAgent = config.customUserAgent
+        _webView?.navigationDelegate = self
+
+        var request = URLRequest(
+            url: url,
+            timeoutInterval: config.timeOut
+        )
+
+        // 第一次 load request 注入 Cookie
+        let cookies = __cookieString()
+        request.setValue(cookies, forHTTPHeaderField: "Cookie")
+
+        _webView?.load(request)
+    }
+
+    /// 移除 WebView
+    final func __removeWebView()
+    {
+        _webView?.navigationDelegate = nil
+        _webView?.stopLoading()
+        _webView = nil
+    }
+
+    /// 創建 Timer
     final func __createTimer()
     {
-        if let _ = _timer
-        {
-            __removeTimer()
-        }
+        __removeTimer()
 
         _timer = DispatchSource.makeTimerSource(flags: [], queue: DispatchQueue.main)
 
@@ -140,79 +186,51 @@ private extension WebParser
             self?.__evaluateJavaScript()
         }
 
-        _timer?.schedule(deadline: .now() + delayTime, repeating: Double(retryCount))
+        _timer?.schedule(
+            deadline: .now() + config.delayTime,
+            repeating: Double(config.retryCount)
+        )
+
         _timer?.resume()
     }
 
+    /// 移除 Timer
     final func __removeTimer()
     {
         _timer?.cancel()
         _timer = nil
         _currentRetryCount = 0
     }
-}
 
-// MARK: - WebView
-
-private extension WebParser
-{
-    final func __createWebView()
-    {
-        if let _ = _webView
-        {
-            __removeWebView()
-        }
-
-        let configure = WKWebViewConfiguration()
-        configure.websiteDataStore = websiteDataStore
-        configure.allowsAirPlayForMediaPlayback = false
-        configure.allowsPictureInPictureMediaPlayback = false
-        configure.allowsInlineMediaPlayback = false
-        _webView = WKWebView(frame: UIScreen.main.bounds, configuration: configure)
-        _webView?.customUserAgent = customUserAgent
-        _webView?.navigationDelegate = self
-    }
-
-    final func __removeWebView()
-    {
-        _webView?.navigationDelegate = nil
-        _webView?.stopLoading()
-        _webView = nil
-    }
-}
-
-// MARK: - Parsing
-
-private extension WebParser
-{
+    /// 執行 Javascript
     final func __evaluateJavaScript()
     {
-        guard let javaScript = javaScript else
+        guard let JavaScript = _JavaScript else
         {
-            return __failWith(error: ParseError.noneJavaScript)
+            return __failWith(error: .noneJavaScript)
         }
 
         if _timer?.isCancelled == true
         {
-            return
+            return __failWith(error: .timeOut)
         }
 
         guard let webView = _webView else
         {
-            return __failWith(error: ParseError.noneWebView)
+            return __failWith(error: .noneWebView)
         }
 
-        webView.evaluateJavaScript(javaScript)
-        { [weak self] (result, error) in
+        webView.evaluateJavaScript(JavaScript)
+        { [weak self] result, error in
             if let _ = error
             {
-                self?.__shouldRetry()
+                self?.__retry()
                 return
             }
 
             guard let result = result else
             {
-                self?.__shouldRetry()
+                self?.__retry()
                 return
             }
 
@@ -229,32 +247,61 @@ private extension WebParser
         }
     }
 
-    final func __shouldRetry()
+    /// 重試
+    final func __retry()
     {
-        guard _currentRetryCount < retryCount else
+        if _currentRetryCount > config.retryCount
         {
-            return __failWith(error: ParseError.retryMaximum)
+            return __failWith(error: .retryMaximum)
         }
 
         _currentRetryCount += 1
     }
-}
 
-// MARK: - Result
-
-private extension WebParser
-{
-    final func __failWith(error: ParseError)
+    /// 爬取失敗
+    final func __failWith(error: WebParserError)
     {
         __removeTimer()
         __removeWebView()
         didFail?(error)
     }
 
+    /// 爬取成功
+    /// - Parameter result: 爬取成功的資料
     final func __successWith(result: T)
     {
         __removeTimer()
         __removeWebView()
         didSuccess?(result)
+    }
+
+    /// 檢測是否為正確的 URL String
+    /// - Parameter string: url string
+    final func __validateUrl(_ string: String) -> Bool
+    {
+        let regEx = "(http|https)://((\\w)*|([0-9]*)|([-|_])*)+([\\.|/]((\\w)*|([0-9]*)|([-|_])*))+"
+        let urlTest = NSPredicate(format:"SELF MATCHES %@", regEx)
+        let result = urlTest.evaluate(with: string)
+        return result
+    }
+    
+    /// Cookie 轉成 string
+    final func __cookieString() -> String?
+    {
+        let cookieStorage = HTTPCookieStorage.shared
+
+        guard let cookies = cookieStorage.cookies else
+        {
+            return nil
+        }
+
+        var result = ""
+
+        for cookie in cookies
+        {
+            result.append("document.cookie=\(cookie.name)=\(cookie.value);path=/")
+        }
+
+        return result;
     }
 }

@@ -1,0 +1,51 @@
+//
+//  Copyright (c) 2018年 shinren.pan@gmail.com All rights reserved.
+//
+
+import Foundation
+
+/// WebParser 的錯誤
+public enum WebParserError: Error, LocalizedError
+{
+    /// 無效的 URL
+    case invalidURL
+
+    /// 未設置 JavaScript
+    case noneJavaScript
+
+    /// Retry 次數達到上限
+    case retryMaximum
+
+    /// 初始化 WebView 失敗
+    case noneWebView
+
+    /// WebView 發生錯誤
+    case webviewFailure
+
+    /// Decode 失敗
+    case decodeFailure
+
+    /// WebView timeout
+    case timeOut
+
+    public var errorDescription: String?
+    {
+        switch self
+        {
+            case .invalidURL:
+                return "無效的 URL"
+            case .noneJavaScript:
+                return "未設置 JavaScript"
+            case .retryMaximum:
+                return "Retry 次數達到上限"
+            case .noneWebView:
+                return "初始化 WebView 失敗"
+            case .webviewFailure:
+                return "WebView 發生錯誤"
+            case .decodeFailure:
+                return "Decode 失敗"
+            case .timeOut:
+                return "WebView timeout"
+        }
+    }
+}

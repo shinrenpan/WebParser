@@ -11,6 +11,9 @@
 		606893C12FC13C928AAFD2D55FF666F0 /* WebParser.h in Headers */ = {isa = PBXBuildFile; fileRef = B3FC410575C69D24539A61DA81E5F5B7 /* WebParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9264BEBBE18B8EB155EED494BA79272E /* WebParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DE252051D76370A389E418CC81F6E09 /* WebParser.framework */; };
 		D4AA1F49220E982F00332D29D185806E /* WebParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41ADC8406FFBA6ADD35C7B57436E4BBF /* WebParserTests.swift */; };
+		D8ED9080235997F1004023D3 /* WebParserConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8ED907F235997F1004023D3 /* WebParserConfiguration.swift */; };
+		D8ED908223599905004023D3 /* WebParserError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8ED908123599905004023D3 /* WebParserError.swift */; };
+		D8ED90842359C094004023D3 /* WebParserCookiePool.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8ED90832359C094004023D3 /* WebParserCookiePool.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -30,6 +33,9 @@
 		41ADC8406FFBA6ADD35C7B57436E4BBF /* WebParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebParserTests.swift; sourceTree = "<group>"; };
 		4C4FF0753197409F76DEE7E47BB39D21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B3FC410575C69D24539A61DA81E5F5B7 /* WebParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebParser.h; sourceTree = "<group>"; };
+		D8ED907F235997F1004023D3 /* WebParserConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebParserConfiguration.swift; sourceTree = "<group>"; };
+		D8ED908123599905004023D3 /* WebParserError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebParserError.swift; sourceTree = "<group>"; };
+		D8ED90832359C094004023D3 /* WebParserCookiePool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebParserCookiePool.swift; sourceTree = "<group>"; };
 		F95268AFC58FBB64A0EA043E29BE59CB /* WebParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebParser.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -58,6 +64,9 @@
 				4C4FF0753197409F76DEE7E47BB39D21 /* Info.plist */,
 				B3FC410575C69D24539A61DA81E5F5B7 /* WebParser.h */,
 				F95268AFC58FBB64A0EA043E29BE59CB /* WebParser.swift */,
+				D8ED907F235997F1004023D3 /* WebParserConfiguration.swift */,
+				D8ED908123599905004023D3 /* WebParserError.swift */,
+				D8ED90832359C094004023D3 /* WebParserCookiePool.swift */,
 			);
 			path = WebParser;
 			sourceTree = "<group>";
@@ -208,7 +217,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D8ED908223599905004023D3 /* WebParserError.swift in Sources */,
+				D8ED90842359C094004023D3 /* WebParserCookiePool.swift in Sources */,
 				31CA0A035508CD13C9D648C4E15D9426 /* WebParser.swift in Sources */,
+				D8ED9080235997F1004023D3 /* WebParserConfiguration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
