@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2019年 shinren.pan@gmail.com All rights reserved.
+// Copyright (c) 2020 shinren.pan@gmail.com All rights reserved.
 //
 
 import WebParser
@@ -7,14 +7,40 @@ import XCTest
 
 struct Comic: Decodable
 {
-    private(set) var title: String?
-    private(set) var episode: String?
+    let title: String?
+    let episode: String?
+}
+
+struct UpdateConfigure: WebParserConfiguration
+{
+    var url: URL = URL(string: "https://tw.manhuagui.com/update/")!
+
+    var maxRetryCount: Int = 5
+
+    var retryDelay: TimeInterval = 3.0
+
+    var timeout: TimeInterval = 30.0
+
+    var browser: Browser = .iPhone
+
+    var javascript: String = """
+    var results = [];
+    $('.latest-list > ul > li').each(function(idx, element)
+    {
+        var comic = {};
+        comic.title = $(element).find('.cover').eq(0).attr('title');
+        comic.episode = $(element).find('.tt').text();
+
+        results.push(comic);
+    });
+    results;
+    """
 }
 
 class WebParserTests: XCTestCase
 {
     private var _expectation = XCTestExpectation(description: "TestParser")
-    private lazy var _parser = __initParser()
+    private lazy var _parser = WebParser<[Comic]>(configure: UpdateConfigure())
     private var _dataSource: [Comic]?
 }
 
@@ -28,43 +54,14 @@ extension WebParserTests
             self?._expectation.fulfill()
         }
 
-        _parser.didFail = {
+        _parser.didFailure = {
             [weak self] _ in
             self?._expectation.fulfill()
         }
 
-        let JavaScript = __JavaScript()
-        _parser.parseUsing(JavaScript: JavaScript)
+        _parser.start()
 
-        wait(for: [_expectation], timeout: _parser.config.timeOut)
+        wait(for: [_expectation], timeout: 30)
         XCTAssertNotNil(_dataSource, "Parser Fail")
-    }
-}
-
-private extension WebParserTests
-{
-    final func __JavaScript() -> String
-    {
-        return """
-        var results = [];
-
-        $('.latest-list > ul > li').each(function(idx, element)
-        {
-            var comic = {};
-            comic.title = $(element).find('.cover').eq(0).attr('title');
-            comic.episode = $(element).find('.tt').text();
-
-            results.push(comic);
-        });
-
-        results;
-        """
-    }
-
-    final func __initParser() -> WebParser<[Comic]>
-    {
-        let url = "https://tw.manhuagui.com/update/"
-        let config = WebParserConfiguration(urlString: url)
-        return WebParser<[Comic]>(config: config)
     }
 }
