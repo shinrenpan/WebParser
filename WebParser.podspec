@@ -13,7 +13,7 @@ Pod::Spec.new do |spec|
   spec.author        = { "Shinren Pan" => "shinren.pan@gmail.com" }
   spec.platform      = :ios, "9.0"
   spec.swift_version = "5.2"
-  spec.source        = { :git => "https://github.com/shinrenpan/WebParser", :tag => "#{spec.version}" }
+  spec.source        = { :git => "https://github.com/shinrenpan/WebParser.git", :tag => "#{spec.version}" }
   spec.source_files  = ["Sources/*.swift", "Sources/WebParser.h"]
   spec.exclude_files = ["Sources/**"]
   spec.frameworks    = "UIKit", "WebKit"
