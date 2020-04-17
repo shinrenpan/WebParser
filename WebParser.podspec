@@ -5,7 +5,7 @@ Pod::Spec.new do |spec|
   spec.summary       = "Web crawler for iOS"
 
   spec.description   = <<-DESC
-                       iOS 爬蟲
+                       基於 WKWebView 的 iOS 爬蟲, 簡單使用 JavaScript 就可以爬遍網站
                        DESC
 
   spec.homepage      = "https://github.com/shinrenpan/WebParser"
