@@ -1,18 +1,12 @@
 //
-//  Copyright (c) 2018年 shinren.pan@gmail.com All rights reserved.
+// Copyright (c) 2020 shinren.pan@gmail.com All rights reserved.
 //
 
 import Foundation
 
 /// WebParser 的錯誤
-public enum WebParserError: Error, LocalizedError
+public enum WebParserError: Error
 {
-    /// 無效的 URL
-    case invalidURL
-
-    /// 未設置 JavaScript
-    case noneJavaScript
-
     /// Retry 次數達到上限
     case retryMaximum
 
@@ -26,16 +20,16 @@ public enum WebParserError: Error, LocalizedError
     case decodeFailure
 
     /// WebView timeout
-    case timeOut
+    case timeout
+}
 
+extension WebParserError: LocalizedError
+{
+    /// 錯誤描述
     public var errorDescription: String?
     {
         switch self
         {
-            case .invalidURL:
-                return "無效的 URL"
-            case .noneJavaScript:
-                return "未設置 JavaScript"
             case .retryMaximum:
                 return "Retry 次數達到上限"
             case .noneWebView:
@@ -44,7 +38,7 @@ public enum WebParserError: Error, LocalizedError
                 return "WebView 發生錯誤"
             case .decodeFailure:
                 return "Decode 失敗"
-            case .timeOut:
+            case .timeout:
                 return "WebView timeout"
         }
     }

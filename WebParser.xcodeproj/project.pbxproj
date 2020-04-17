@@ -11,6 +11,8 @@
 		606893C12FC13C928AAFD2D55FF666F0 /* WebParser.h in Headers */ = {isa = PBXBuildFile; fileRef = B3FC410575C69D24539A61DA81E5F5B7 /* WebParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9264BEBBE18B8EB155EED494BA79272E /* WebParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DE252051D76370A389E418CC81F6E09 /* WebParser.framework */; };
 		D4AA1F49220E982F00332D29D185806E /* WebParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41ADC8406FFBA6ADD35C7B57436E4BBF /* WebParserTests.swift */; };
+		D7A071E92447849C003C216E /* WebViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A071E82447849C003C216E /* WebViewDelegate.swift */; };
+		D7A071EB24478A52003C216E /* Browser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A071EA24478A52003C216E /* Browser.swift */; };
 		D8ED9080235997F1004023D3 /* WebParserConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8ED907F235997F1004023D3 /* WebParserConfiguration.swift */; };
 		D8ED908223599905004023D3 /* WebParserError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8ED908123599905004023D3 /* WebParserError.swift */; };
 		D8ED90842359C094004023D3 /* WebParserCookiePool.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8ED90832359C094004023D3 /* WebParserCookiePool.swift */; };
@@ -33,6 +35,8 @@
 		41ADC8406FFBA6ADD35C7B57436E4BBF /* WebParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebParserTests.swift; sourceTree = "<group>"; };
 		4C4FF0753197409F76DEE7E47BB39D21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B3FC410575C69D24539A61DA81E5F5B7 /* WebParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebParser.h; sourceTree = "<group>"; };
+		D7A071E82447849C003C216E /* WebViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewDelegate.swift; sourceTree = "<group>"; };
+		D7A071EA24478A52003C216E /* Browser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Browser.swift; sourceTree = "<group>"; };
 		D8ED907F235997F1004023D3 /* WebParserConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebParserConfiguration.swift; sourceTree = "<group>"; };
 		D8ED908123599905004023D3 /* WebParserError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebParserError.swift; sourceTree = "<group>"; };
 		D8ED90832359C094004023D3 /* WebParserCookiePool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebParserCookiePool.swift; sourceTree = "<group>"; };
@@ -58,17 +62,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		84815BC14CE387C7B48A588E39E20327 /* WebParser */ = {
+		D72147052449F93D00AA6D9A /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				4C4FF0753197409F76DEE7E47BB39D21 /* Info.plist */,
 				B3FC410575C69D24539A61DA81E5F5B7 /* WebParser.h */,
+				4C4FF0753197409F76DEE7E47BB39D21 /* Info.plist */,
+				D7A071EA24478A52003C216E /* Browser.swift */,
 				F95268AFC58FBB64A0EA043E29BE59CB /* WebParser.swift */,
 				D8ED907F235997F1004023D3 /* WebParserConfiguration.swift */,
-				D8ED908123599905004023D3 /* WebParserError.swift */,
 				D8ED90832359C094004023D3 /* WebParserCookiePool.swift */,
+				D8ED908123599905004023D3 /* WebParserError.swift */,
+				D7A071E82447849C003C216E /* WebViewDelegate.swift */,
 			);
-			path = WebParser;
+			path = Sources;
 			sourceTree = "<group>";
 		};
 		DB1DB422C5CAF27C98E1785D516C0A96 /* Products */ = {
@@ -84,7 +90,7 @@
 			isa = PBXGroup;
 			children = (
 				DB1DB422C5CAF27C98E1785D516C0A96 /* Products */,
-				84815BC14CE387C7B48A588E39E20327 /* WebParser */,
+				D72147052449F93D00AA6D9A /* Sources */,
 				EBF0D35869810AAB64DE4492FC5A9B0F /* WebParserTests */,
 			);
 			sourceTree = "<group>";
@@ -218,6 +224,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				D8ED908223599905004023D3 /* WebParserError.swift in Sources */,
+				D7A071E92447849C003C216E /* WebViewDelegate.swift in Sources */,
+				D7A071EB24478A52003C216E /* Browser.swift in Sources */,
 				D8ED90842359C094004023D3 /* WebParserCookiePool.swift in Sources */,
 				31CA0A035508CD13C9D648C4E15D9426 /* WebParser.swift in Sources */,
 				D8ED9080235997F1004023D3 /* WebParserConfiguration.swift in Sources */,
@@ -309,7 +317,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = WebParser/Info.plist;
+				INFOPLIST_FILE = Sources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -321,6 +329,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -416,7 +425,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = WebParser/Info.plist;
+				INFOPLIST_FILE = Sources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -428,6 +437,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
