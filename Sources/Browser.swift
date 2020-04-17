@@ -2,6 +2,7 @@
 // Copyright (c) 2020 shinren.pan@gmail.com All rights reserved.
 //
 
+import UIKit
 import Foundation
 
 /// 爬取時的瀏覽器
