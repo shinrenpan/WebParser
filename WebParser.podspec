@@ -5,7 +5,7 @@ Pod::Spec.new do |spec|
   spec.summary       = "Web crawler for iOS"
 
   spec.description   = <<-DESC
-                       Web crawler for iOS
+                       iOS 爬蟲
                        DESC
 
   spec.homepage      = "https://github.com/shinrenpan/WebParser"
@@ -14,8 +14,7 @@ Pod::Spec.new do |spec|
   spec.platform      = :ios, "9.0"
   spec.swift_version = "5.2"
   spec.source        = { :git => "https://github.com/shinrenpan/WebParser.git", :tag => "#{spec.version}" }
-  spec.source_files  = ["Sources/*.swift", "Sources/WebParser.h"]
-  spec.exclude_files = ["Sources/**"]
+  spec.source_files  = "Sources/*.{swift}"
   spec.frameworks    = "UIKit", "WebKit"
 
 end
