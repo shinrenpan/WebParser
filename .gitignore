@@ -1,6 +1,9 @@
 
 # Created by https://www.gitignore.io/api/xcode,macos,swift,carthage,fastlane,cocoapods,objective-c
 
+### Swift Package ###
+.swiftpm/
+
 ### Carthage ###
 # Carthage
 #
