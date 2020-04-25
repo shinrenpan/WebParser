@@ -74,7 +74,16 @@ internal extension WebParser
     /// - Parameter error: 錯誤
     func handleError(_ error: WebParserError)
     {
+        __removeTimer()
+        __removeWebView()
         didFailure?(error)
+    }
+
+    func handleSuccess(_ result: ResultType)
+    {
+        __removeTimer()
+        __removeWebView()
+        didSuccess?(result)
     }
 }
 
@@ -184,8 +193,8 @@ private extension WebParser
             do
             {
                 let json = try JSONSerialization.data(withJSONObject: result, options: [])
-                let result = try JSONDecoder().decode(ResultType.self, from: json)
-                self?.didSuccess?(result)
+                let decode = try JSONDecoder().decode(ResultType.self, from: json)
+                self?.handleSuccess(decode)
             }
             catch
             {
