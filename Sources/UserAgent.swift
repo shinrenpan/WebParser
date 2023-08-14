@@ -23,7 +23,7 @@ public enum UserAgent {
     case custom(userAgent: String, frame: CGRect)
 }
 
-extension UserAgent {
+public extension UserAgent {
     /// User agent
     var desc: String {
         switch self {
