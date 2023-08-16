@@ -25,23 +25,21 @@ public extension Parser {
     /// 爬取資料
     /// - Parameter resultType: 爬取的類型
     /// - Returns: 回傳爬取資料
-    func parse<T>(_ resultType: T.Type) async throws -> T where T: Decodable {
+    func parse() async throws -> Any {
         guard let request = makeRequest() else {
             throw ParserError.invalidURI
         }
         
         await createWebView(request: request)
         
-        var result: T?
         let seconds = UInt64(configuration.retryInterval * 1_000_000_000)
+        var result: Any?
         
         for _ in 1 ... configuration.retryCount {
             try await Task.sleep(nanoseconds: seconds)
             
-            if let data = await webViewEvaluateJavaScript(),
-               let json = try? JSONSerialization.data(withJSONObject: data, options: []),
-               let decode = try? JSONDecoder().decode(resultType, from: json) {
-                result = decode
+            if let data = await webViewEvaluateJavaScript() {
+                result = data
                 break
             }
         }

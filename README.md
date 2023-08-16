@@ -23,10 +23,10 @@ let javascript = """
 var results = [];
 var list = $('.latest-list > ul > li');
 list.each(function() {
-var comic = new Object();
-comic.title = $(this).find('a').eq(0).attr('title');
-comic.detailURI = $(this).find('a').eq(0).attr('href');
-results.push(comic);
+    var comic = new Object();
+    comic.title = $(this).find('a').eq(0).attr('title');
+    comic.detailURI = $(this).find('a').eq(0).attr('href');
+    results.push(comic);
 });
 results;
 """
@@ -40,9 +40,19 @@ let configure = Configuration(
 )
 ```
 
+> Timeout 時間 = retryInterval * retryCount
+
 3. **初始化 Parser 並開始爬取**
 
 ```swift
 let parser = Parser(configuration: configure)
-let result = try await parser.parse([Comic].self)
+
+do {
+    let data = try await parser.parse()
+    let json = try JSONSerialization.data(withJSONObject: data, options: [])
+    var comics = try JSONDecoder().decode([Comic].self, from: json) 
+}
+catch {
+    print(error)
+}
 ```
