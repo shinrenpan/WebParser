@@ -18,10 +18,10 @@ public final class Parser {
     /// 反之為 false 時, 無法在 Safari 使用工具 debug, 每次爬取完將移除 webView.
     ///
     /// default 為 false.
-    var debug = false
+    public var debug = false
     
     /// 爬取網頁的設置.
-    var parserConfiguration: ParserConfiguration
+    public var parserConfiguration: ParserConfiguration
     
     
     /// 初始化 Parser
