@@ -38,6 +38,15 @@ public struct ParserConfiguration {
     /// 要執行的 javascript.
     public var javascript: String
     
+    /// 是否支援 debug.
+    ///
+    /// 如果為 true 就可以在 Safari 裡使用開發者工具 debug, 但是每次爬取完不會移除 webView,
+    ///
+    /// 反之為 false 時, 無法在 Safari 使用工具 debug, 每次爬取完將移除 webView.
+    ///
+    /// default 為 false.
+    public var debug = false
+    
     /// 初始化爬取設置
     /// - Parameters:
     ///   - request: 要爬取的 URL Request.

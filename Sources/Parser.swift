@@ -11,18 +11,8 @@ public final class Parser {
     /// 爬取網頁專用的 WebView.
     private var webView: WKWebView?
     
-    /// 是否支援 debug.
-    ///
-    /// 如果為 true 就可以在 Safari 裡使用開發者工具 debug, 但是每次爬取完不會移除 webView,
-    ///
-    /// 反之為 false 時, 無法在 Safari 使用工具 debug, 每次爬取完將移除 webView.
-    ///
-    /// default 為 false.
-    public var debug = false
-    
     /// 爬取網頁的設置.
     public var parserConfiguration: ParserConfiguration
-    
     
     /// 初始化 Parser
     /// - Parameter parserConfiguration: 爬取網頁的設置.
@@ -34,9 +24,9 @@ public final class Parser {
 // MARK: - Public
 
 public extension Parser {
-    /// 開始爬取網頁.
+    /// 返回爬取資料.
     /// - Returns: 返回透過 javascript 爬取的資料.
-    func start() async throws -> Any {
+    func result() async throws -> Any {
         await createWebView()
         
         let seconds = UInt64(self.parserConfiguration.retryDuration * 1_000_000_000)
@@ -51,7 +41,7 @@ public extension Parser {
             try await Task.sleep(nanoseconds: seconds)
         }
         
-        if debug == false {
+        if parserConfiguration.debug == false {
             await removeWebView()
         }
         
@@ -82,7 +72,7 @@ private extension Parser {
         self.webView = .init(frame: frame, configuration: webConfiguration)
         
         if #available(iOS 16.4, *) {
-            self.webView?.isInspectable = debug
+            self.webView?.isInspectable = parserConfiguration.debug
         }
         
         if let customUserAgent = parserConfiguration.customUserAgent {
