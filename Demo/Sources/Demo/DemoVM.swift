@@ -23,7 +23,11 @@ extension DemoVM {
             actionLoadData()
         }
     }
-    
+}
+
+// MARK: - Private
+
+private extension DemoVM {
     func actionLoadData() {
         Task {
             do {
