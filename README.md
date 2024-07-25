@@ -19,4 +19,4 @@
 
 ## 使用
 
-使用方法詳見 [Demo](https://github.com/shinrenpan/webparser-demo).
+使用方法詳見 Demo.
