@@ -8,10 +8,10 @@ import Combine
 import UIKit
 import WebParser
 
+@MainActor
 final class DemoVM {
     @Published var state = DemoModels.State.none
     let model = DemoModels.DisplayModel()
-    lazy var parser = makeParser()
 }
 
 // MARK: - Public
@@ -31,9 +31,8 @@ private extension DemoVM {
     func actionLoadData() {
         Task {
             do {
-                let result = try await parser.result()
-                let data = try JSONSerialization.data(withJSONObject: result)
-                let comics = try JSONDecoder().decode([DemoModels.Comic].self, from: data)
+                let parser = makeParser()
+                let comics = try await parser.result([DemoModels.Comic].self)
                 state = .dataLoaded(comics: comics)
             }
             catch {

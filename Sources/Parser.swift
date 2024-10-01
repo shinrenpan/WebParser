@@ -7,6 +7,7 @@
 import WebKit
 
 /// 網頁爬蟲
+@MainActor
 public final class Parser {
     /// 爬取網頁專用的 WebView.
     private var webView: WKWebView?
@@ -24,10 +25,17 @@ public final class Parser {
 // MARK: - Public
 
 public extension Parser {
+    func result<T>(_ type: T.Type) async throws -> T where T: Decodable {
+        let any = try await result()
+        let data = try JSONSerialization.data(withJSONObject: any)
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+    
     /// 返回爬取資料.
     /// - Returns: 返回透過 javascript 爬取的資料.
+    @available(*, deprecated, message: "Use result<T>")
     func result() async throws -> Any {
-        await createWebView()
+        createWebView()
         
         let seconds = UInt64(self.parserConfiguration.retryDuration * 1_000_000_000)
         var result: Any?
@@ -42,7 +50,7 @@ public extension Parser {
         }
         
         if parserConfiguration.debug == false {
-            await removeWebView()
+            removeWebView()
         }
         
         if let result {
@@ -58,7 +66,7 @@ public extension Parser {
 
 private extension Parser {
     /// 創建 webView.
-    @MainActor func createWebView() {
+    func createWebView() {
         removeWebView()
         
         let webConfiguration = WKWebViewConfiguration()
@@ -85,14 +93,14 @@ private extension Parser {
     }
     
     /// 移除 webView.
-    @MainActor func removeWebView() {
+    func removeWebView() {
         webView?.stopLoading()
         webView = nil
     }
     
     /// webView 執行 javascript
     /// - Returns: 返回執行 javascript 後得到的值.
-    @MainActor func webViewEvaluateJavaScript() async -> Any? {
+    func webViewEvaluateJavaScript() async -> Any? {
         try? await webView?.evaluateJavaScript(parserConfiguration.javascript)
     }
     

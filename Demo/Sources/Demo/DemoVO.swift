@@ -6,6 +6,7 @@
 
 import UIKit
 
+@MainActor
 final class DemoVO {
     let mainView = UIView(frame: .zero)
     let list = UICollectionView(frame: .zero, collectionViewLayout: makeListLayout())
