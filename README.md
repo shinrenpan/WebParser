@@ -1,6 +1,6 @@
 ## 前言
 
-![](https://img.shields.io/badge/Swift-5.8-blue) ![](https://img.shields.io/badge/iOS-13.0-blue)
+![](https://img.shields.io/badge/Swift-6-blue) ![](https://img.shields.io/badge/iOS-13.0-blue)
 
 開發 iOS app 最重要的莫過於 app 的內容, 一般公司會由 backend 提供 api 讀取所需的內容, 甚至有專職員工上架所需內容.
 
