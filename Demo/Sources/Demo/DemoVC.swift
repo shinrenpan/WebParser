@@ -69,10 +69,10 @@ private extension DemoVC {
 
     func stateNone() {}
     
-    func stateDataLoaded(comics: [DemoModels.Comic]) {
+    func stateDataLoaded(comics: [DemoModel.Comic]) {
         vo.loading.stopAnimating()
         
-        var snapshot = DemoModels.SnapShot()
+        var snapshot = DemoModel.SnapShot()
         snapshot.appendSections([0])
         snapshot.appendItems(comics, toSection: 0)
         dataSource.apply(snapshot)
@@ -85,7 +85,7 @@ private extension DemoVC {
     
     // MARK: - Make Something
     
-    func makeCell() -> DemoModels.CellRegistration {
+    func makeCell() -> DemoModel.CellRegistration {
         .init { cell, indexPath, comic in
             var config = UIListContentConfiguration.cell()
             config.text = comic.title
@@ -93,7 +93,7 @@ private extension DemoVC {
         }
     }
     
-    func makeDataSource() -> DemoModels.DataSource {
+    func makeDataSource() -> DemoModel.DataSource {
         let cell = makeCell()
         
         return .init(collectionView: vo.list) { collectionView, indexPath, comic in

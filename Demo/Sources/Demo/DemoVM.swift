@@ -9,15 +9,14 @@ import UIKit
 import WebParser
 
 @MainActor
-final class DemoVM {
-    @Published var state = DemoModels.State.none
-    let model = DemoModels.DisplayModel()
+final class DemoVM: ObservableObject {
+    @Published var state = DemoModel.State.none
 }
 
 // MARK: - Public
 
 extension DemoVM {
-    func doAction(_ action: DemoModels.Action) {
+    func doAction(_ action: DemoModel.Action) {
         switch action {
         case .loadData:
             actionLoadData()
@@ -32,7 +31,7 @@ private extension DemoVM {
         Task {
             do {
                 let parser = makeParser()
-                let comics = try await parser.result([DemoModels.Comic].self)
+                let comics = try await parser.result([DemoModel.Comic].self)
                 state = .dataLoaded(comics: comics)
             }
             catch {

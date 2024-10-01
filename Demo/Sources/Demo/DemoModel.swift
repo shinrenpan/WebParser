@@ -1,12 +1,12 @@
 //
-//  DemoModels.swift
+//  DemoModel.swift
 //
 //  Created by Shinren Pan on 2024/7/25.
 //
 
 import UIKit
 
-enum DemoModels {
+enum DemoModel {
     typealias DataSource = UICollectionViewDiffableDataSource<Int, Comic>
     typealias SnapShot = NSDiffableDataSourceSnapshot<Int, Comic>
     typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic>
@@ -14,7 +14,7 @@ enum DemoModels {
 
 // MARK: - Action
 
-extension DemoModels {
+extension DemoModel {
     enum Action {
         case loadData
     }
@@ -22,7 +22,7 @@ extension DemoModels {
 
 // MARK: - State
 
-extension DemoModels {
+extension DemoModel {
     enum State {
         case none
         case dataLoaded(comics: [Comic])
@@ -32,7 +32,7 @@ extension DemoModels {
 
 // MARK: - Other Model for DisplayModel
 
-extension DemoModels {
+extension DemoModel {
     struct Comic: Hashable, Decodable {
         let id: String
         let title: String
@@ -43,15 +43,9 @@ extension DemoModels {
         }
         
         init(from decoder: any Decoder) throws {
-            let container: KeyedDecodingContainer<DemoModels.Comic.CodingKeys> = try decoder.container(keyedBy: DemoModels.Comic.CodingKeys.self)
+            let container: KeyedDecodingContainer<DemoModel.Comic.CodingKeys> = try decoder.container(keyedBy: DemoModel.Comic.CodingKeys.self)
             self.id = UUID().uuidString
-            self.title = try container.decode(String.self, forKey: DemoModels.Comic.CodingKeys.title)
+            self.title = try container.decode(String.self, forKey: DemoModel.Comic.CodingKeys.title)
         }
     }
-}
-
-// MARK: - Display Model for ViewModel
-
-extension DemoModels {
-    final class DisplayModel {}
 }

@@ -13,7 +13,7 @@
 		0E1AFF4F2C529D1700977E78 /* DemoVO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1AFF4A2C529D1700977E78 /* DemoVO.swift */; };
 		0E1AFF502C529D1700977E78 /* DemoRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1AFF4B2C529D1700977E78 /* DemoRouter.swift */; };
 		0E1AFF512C529D1700977E78 /* DemoVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1AFF4C2C529D1700977E78 /* DemoVM.swift */; };
-		0E1AFF522C529D1700977E78 /* DemoModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1AFF4D2C529D1700977E78 /* DemoModels.swift */; };
+		0E1AFF522C529D1700977E78 /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1AFF4D2C529D1700977E78 /* DemoModel.swift */; };
 		0E1AFF532C529D1700977E78 /* DemoVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1AFF4E2C529D1700977E78 /* DemoVC.swift */; };
 		0E1AFF5B2C529D3D00977E78 /* WebParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E1AFF592C529D3700977E78 /* WebParser.framework */; };
 		0E1AFF5C2C529D3D00977E78 /* WebParser.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0E1AFF592C529D3700977E78 /* WebParser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -51,7 +51,7 @@
 		0E1AFF4A2C529D1700977E78 /* DemoVO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoVO.swift; sourceTree = "<group>"; };
 		0E1AFF4B2C529D1700977E78 /* DemoRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoRouter.swift; sourceTree = "<group>"; };
 		0E1AFF4C2C529D1700977E78 /* DemoVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoVM.swift; sourceTree = "<group>"; };
-		0E1AFF4D2C529D1700977E78 /* DemoModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoModels.swift; sourceTree = "<group>"; };
+		0E1AFF4D2C529D1700977E78 /* DemoModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoModel.swift; sourceTree = "<group>"; };
 		0E1AFF4E2C529D1700977E78 /* DemoVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoVC.swift; sourceTree = "<group>"; };
 		0E1AFF542C529D3700977E78 /* WebParser.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = WebParser.xcodeproj; path = ../WebParser/WebParser.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -115,7 +115,7 @@
 		0E1AFF5E2C529E0700977E78 /* Demo */ = {
 			isa = PBXGroup;
 			children = (
-				0E1AFF4D2C529D1700977E78 /* DemoModels.swift */,
+				0E1AFF4D2C529D1700977E78 /* DemoModel.swift */,
 				0E1AFF4B2C529D1700977E78 /* DemoRouter.swift */,
 				0E1AFF4E2C529D1700977E78 /* DemoVC.swift */,
 				0E1AFF4C2C529D1700977E78 /* DemoVM.swift */,
@@ -214,7 +214,7 @@
 				0E1AFF4F2C529D1700977E78 /* DemoVO.swift in Sources */,
 				0E1AFF502C529D1700977E78 /* DemoRouter.swift in Sources */,
 				0E1AFF512C529D1700977E78 /* DemoVM.swift in Sources */,
-				0E1AFF522C529D1700977E78 /* DemoModels.swift in Sources */,
+				0E1AFF522C529D1700977E78 /* DemoModel.swift in Sources */,
 				0E1AFF532C529D1700977E78 /* DemoVC.swift in Sources */,
 				0E1AFF3E2C529CA300977E78 /* AppDelegate.swift in Sources */,
 			);
