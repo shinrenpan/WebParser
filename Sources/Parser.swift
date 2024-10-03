@@ -25,16 +25,18 @@ public final class Parser {
 // MARK: - Public
 
 public extension Parser {
-    func result<T>(_ type: T.Type) async throws -> T where T: Decodable {
-        let any = try await result()
+    /// 返回爬取資料, 類型為指定的 Decodable 類型.
+    /// - Parameter type: 指定的 Decodable 類型.
+    /// - Returns: 返回透過 javascript 爬取的資料.
+    func decodeResult<T>(_ type: T.Type) async throws -> T where T: Decodable {
+        let any = try await anyResult()
         let data = try JSONSerialization.data(withJSONObject: any)
         return try JSONDecoder().decode(T.self, from: data)
     }
     
-    /// 返回爬取資料.
+    /// 返回爬取資料, 類型為 Any.
     /// - Returns: 返回透過 javascript 爬取的資料.
-    @available(*, deprecated, message: "Use result<T>")
-    func result() async throws -> Any {
+    func anyResult() async throws -> Any {
         createWebView()
         
         let seconds = UInt64(self.parserConfiguration.retryDuration * 1_000_000_000)

@@ -11,6 +11,7 @@ import WebParser
 @MainActor
 final class DemoVM: ObservableObject {
     @Published var state = DemoModel.State.none
+    lazy var parser = makeParser()
 }
 
 // MARK: - Public
@@ -30,8 +31,7 @@ private extension DemoVM {
     func actionLoadData() {
         Task {
             do {
-                let parser = makeParser()
-                let comics = try await parser.result([DemoModel.Comic].self)
+                let comics = try await parser.decodeResult([DemoModel.Comic].self)
                 state = .dataLoaded(comics: comics)
             }
             catch {
