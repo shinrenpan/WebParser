@@ -8,5 +8,6 @@ import WebKit
 
 /// WebView 共用 Cookie pool
 struct CookiePool {
+    @MainActor
     static let shared = WKProcessPool()
 }
