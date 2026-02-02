@@ -1,0 +1,38 @@
+name: Swift Auto-Latest Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # 建議加上定時排程，即使沒推程式碼，也能發現 Xcode 環境更新後的相容性問題
+  schedule:
+    - cron: '0 0 * * 1' # 每週一凌晨自動執行一次
+
+jobs:
+  test:
+    # 使用 latest 標籤，GitHub 會自動指向當前託管的最頂版本 (例如 macOS 16)
+    runs-on: macos-latest
+
+    defaults:
+      run:
+        working-directory: WebParser
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Newest Xcode
+        # 這行指令會自動抓取路徑下版本號最高的 Xcode 並切換
+        run: |
+          LATEST_XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -n 1)
+          echo "切換至最新 Xcode: $LATEST_XCODE"
+          sudo xcode-select -s "$LATEST_XCODE"
+
+      - name: Environment Info
+        run: |
+          sw_vers
+          xcodebuild -version
+          swift --version
+
+      - name: Run Swift Testing
+        # 即使失敗也繼續運行，以便收集完整的測試報告 (可選)
+        run: swift test --parallel

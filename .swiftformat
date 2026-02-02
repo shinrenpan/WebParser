@@ -1,0 +1,376 @@
+# --- 基本格式與語法 ---
+
+# 縮寫詞清單：強制這些詞彙全大寫 (例如變數名稱 id -> ID, url -> URL)
+--acronyms ID,URL,UUID
+
+# 括號風格：不使用 Allman 風格 (即花括號不需獨立換行，保持在同一行)
+--allman false
+
+# 閉包參數：將匿名參數 ($0) 轉換為命名參數 (例如: map { $0 } -> map { item in item })
+--anonymous-for-each convert
+
+# 圖片/顏色字面量：保留其視覺寬度設定
+--asset-literals visual-width
+
+# Async 捕獲：在閉包捕獲列表中明確標記 async
+--async-capturing
+
+# 標記 (MARK) 前的空行處理
+--before-marks
+
+# 二進位數字分組：每 4 或 8 位加底線 (例如: 0b1010_1111)
+--binary-grouping 4,8
+
+# 呼叫處的括號風格：使用預設值
+--call-site-paren default
+
+# 分類標記格式 (%c 會被替換為分類名稱)
+--category-mark "MARK: %c"
+
+# Class 排序閾值：0 表示總是對 Class 內成員進行排序
+--class-threshold 0
+
+# 右括號位置：平衡對齊 (與對應的左括號所在行對齊或對稱)
+--closing-paren balanced
+
+# 閉包回傳 Void：移除多餘的 `-> Void`
+--closure-void remove
+
+# 複雜屬性 (@Attribute)：保留原本的換行格式，不強制變更
+--complex-attributes preserve
+
+# 計算屬性的屬性 (@) 標記：保留原樣
+--computed-var-attributes preserve
+
+# 條件賦值 (如 if let x = y)：放在屬性之後
+--conditional-assignment after-property
+
+# Git 衝突標記：如果檔案含有衝突標記 (<<<<<<<)，則拒絕格式化 (避免損壞檔案)
+--conflict-markers reject
+
+# 日期格式化：使用系統預設
+--date-format system
+
+# 十進位數字分組：每 3 或 6 位加底線 (例如: 1_000_000)
+--decimal-grouping 3,6
+
+# 文檔註釋：強制放在宣告之前 (而非修飾符之後)
+--doc-comments before-declarations
+
+# Else 關鍵字位置：放在下一行 (Stroustrup 風格: } \n else { )
+--else-position next-line
+
+# 空花括號：內部不加空格 (例如: {})
+--empty-braces no-space
+
+# Enum 命名空間：總是使用 enum 作為命名空間 (而非 struct)
+--enum-namespaces always
+
+# Enum 排序閾值：0 表示總是對 case 排序
+--enum-threshold 0
+
+# Equatable 巨集：不自動添加
+--equatable-macro none
+
+# 指數符號大小寫：使用小寫 (e)
+--exponent-case lowercase
+
+# 指數部分分組：不處理
+--exponent-grouping disabled
+
+# Extension 存取權限控制 (ACL)：將 public/private 放在 extension 關鍵字前
+--extension-acl on-extension
+
+# Extension 標記格式 (%t: 類型, %c: 分類)
+--extension-mark "MARK: - %t + %c"
+
+# Extension 排序閾值：0 表示總是排序
+--extension-threshold 0
+
+# File 巨集：使用 #file 而非 #filePath
+--file-macro "#file"
+
+# 小數部分分組：不處理
+--fraction-grouping disabled
+
+# 片段模式：關閉 (處理整個檔案)
+--fragment false
+
+# 函式屬性 (@) 標記：保留原樣
+--func-attributes preserve
+
+# 泛型類型參數格式化
+--generic-types
+
+# 空行分組：保留宣告之間的分組空行
+--group-blank-lines true
+
+# 分組 Extension 的標記格式
+--grouped-extension "MARK: %c"
+
+# Guard Else：自動判斷 (短的單行，長的換行)
+--guard-else auto
+
+# 檔案檔頭 (Header)：忽略 (不自動新增或移除版權宣告)
+--header ignore
+
+# 十六進位分組：每 4 或 8 位加底線
+--hex-grouping 4,8
+
+# 十六進位字面量大小寫：使用大寫 (例如: 0xFF)
+--hex-literal-case uppercase
+
+# #if/#endif 縮排：進行縮排
+--ifdef indent
+
+# Import 語句排序：按字母順序
+--import-grouping alpha
+
+# 縮排寬度：2 個空格
+--indent 2
+
+# Case 語句縮排：不額外縮排 (case 與 switch 對齊)
+--indent-case false
+
+# 多行字串縮排：不調整
+--indent-strings false
+
+# 推斷類型：總是使用推斷類型 (移除顯式類型宣告，例如 let x: Int = 0 -> let x = 0)
+--inferred-types always
+
+# 構造器 (Init) 返回 nil：不強制處理
+--init-coder-nil false
+
+# 語言模式：自動偵測
+--language-mode 0
+
+# 生命週期函式 (如 viewDidLoad) 排序
+--lifecycle
+
+# MARK 標記後是否保留空行
+--line-after-marks true
+
+# 多個 Guard 語句之間是否保留空行
+--line-between-guards true
+
+# 換行符號：強制使用 LF (Unix 風格 \n)
+--linebreaks lf
+
+# 是否標記 Extension 分類
+--mark-categories true
+
+# 是否標記 Extension
+--mark-extensions always
+
+# 是否標記特定類型
+--mark-types always
+
+# 單行最大字元寬度：100 字元
+--max-width 100
+
+# 修飾符 (public, static 等) 排序
+--modifier-order
+
+# Never 返回類型：不強制使用 trailing 格式
+--never-trailing
+
+# Optional 初始化：移除顯式的 nil (例如: var x: Int? = nil -> var x: Int?)
+--nil-init remove
+
+# 運算子周圍空格：不強制移除
+--no-space-operators
+
+# 運算子換行：不強制禁止
+--no-wrap-operators
+
+# 非複雜屬性：預設處理
+--non-complex-attributes
+
+# 八進位分組：每 4 或 8 位
+--octal-grouping 4,8
+
+# 運算子函式：保留空格
+--operator-func spaced
+
+# 組織模式：根據可見性 (public/private) 排序
+--organization-mode visibility
+
+# 類型內部成員排序順序 (Actor, Class, Enum, Struct)
+--organize-types actor,class,enum,struct
+
+# Pattern Let：提升 let 到頂層 (例如 if case .foo(let x) -> if case let .foo(x))
+--pattern-let hoist
+
+# 保留縮寫詞的原樣
+--preserve-acronyms
+
+# 保留宣告的原樣 (不隨意刪除)
+--preserve-decls
+
+# 保留特定類型的屬性名稱 (此處設定為 Package)
+--preserved-property-types Package
+
+# 屬性類型推斷：僅推斷區域變數
+--property-types infer-locals-only
+
+# 區間運算子空格：兩側加空格 (例如 0 ..< 10)
+--ranges spaced
+
+# Self 關鍵字：移除不必要的 self
+--self remove
+
+# 必須使用 self 的場景設定
+--self-required
+
+# 分號處理：允許行內分號
+--semicolons inline
+
+# 簡寫 Optional：除了屬性外，使用 ? 代替 Optional<T>
+--short-optionals except-properties
+
+# 單行 For-Each：忽略 (不強制展開)
+--single-line-for-each ignore
+
+# 智慧 Tab：啟用 (通常指對齊用空格，縮排用 Tab，但上方已設 tab-width 2，此處可能指對齊邏輯)
+--smart-tabs enabled
+
+# some/any 關鍵字：啟用 Swift 5.7+ 語法支援
+--some-any true
+
+# SwiftUI 屬性排序：不排序 (保留開發者撰寫順序)
+--sort-swiftui-properties none
+
+# 模式匹配排序
+--sorted-patterns
+
+# 儲存屬性 (@) 標記：保留原樣
+--stored-var-attributes preserve
+
+# 未使用的參數：總是移除 (使用 _)
+--strip-unused-args always
+
+# Struct 排序閾值：0 表示總是排序
+--struct-threshold 0
+
+# Swift 版本：指定目標為 6.2 (允許最新語法)
+--swift-version 6.2
+
+# Tab 寬度：2 個空格 (配合 --indent 2)
+--tab-width 2
+
+# 錯誤捕獲：格式化 throw capturing
+--throw-capturing
+
+# 時區設定：使用系統時區 (影響日期格式化)
+--timezone system
+
+# 尾隨閉包 (Trailing Closures)：自動轉換
+--trailing-closures
+
+# 尾隨逗號 (Trailing Commas)：總是添加 (陣列/字典最後一項加逗號，方便版控 diff)
+--trailing-commas always
+
+# 移除行尾空白：總是移除
+--trim-whitespace always
+
+# 類型屬性 (@) 標記：保留原樣
+--type-attributes preserve
+
+# 類型內部的空行：移除 (緊湊風格)
+--type-blank-lines remove
+
+# 類型分隔符 (:)：冒號後加空格
+--type-delimiter space-after
+
+# 類型標記格式
+--type-mark "MARK: - %t"
+
+# 是否添加類型標記
+--type-marks
+
+# 類型排序順序
+--type-order
+
+# URL 巨集：不使用
+--url-macro none
+
+# 可見性標記 (MARK)
+--visibility-marks
+
+# 可見性排序順序
+--visibility-order
+
+# Void 類型寫法：使用 Void (而非 ())
+--void-type void
+
+# --- 換行 (Wrapping) 設定 ---
+# 下列設定多為 "preserve"，表示保留你手動換行的格式，SwiftFormat 不會強制合併或拆分
+
+# 函式參數換行：保留
+--wrap-arguments preserve
+# 集合 (Array/Dict) 換行：保留
+--wrap-collections preserve
+# 條件式 (if/guard) 換行：保留
+--wrap-conditions preserve
+# 效果 (throws/async) 換行：保留
+--wrap-effects preserve
+# Enum case 換行：總是換行
+--wrap-enum-cases always
+# 參數定義換行：預設
+--wrap-parameters default
+# 返回類型 (-> Type) 換行：保留
+--wrap-return-type preserve
+# 字串插值換行：預設
+--wrap-string-interpolation default
+# 三元運算子 ( ? : ) 換行：預設
+--wrap-ternary default
+# Type Alias 換行：保留
+--wrap-type-aliases preserve
+
+# Xcode 縮排：停用 (完全由 SwiftFormat 接管)
+--xcode-indentation disabled
+
+# XCTest 符號處理
+--xctest-symbols
+
+# Yoda 條件式 (if 5 == count)：總是交換為自然語序 (if count == 5)
+--yoda-swap always
+
+# --- 規則啟用與停用清單 ---
+
+# 停用的規則 (Disable List)
+# docCommentsBeforeModifiers: 文檔註釋不強制移到修飾符前 (與上方的 doc-comments before-declarations 配合調整)
+# fileHeader: 不處理檔案頭部
+# numberFormatting: 不自動格式化數字
+# redundantLet: 不移除多餘的 let
+# redundantRawValues: 不移除 Enum 多餘的原始值
+# redundantSelf: 不移除多餘的 self (注意：上方有 --self remove，這裡停用規則可能會產生衝突，以 flag 為主或需檢查版本行為)
+# strongifiedSelf: 不將 weak self 轉為強引用
+# swiftTestingTestCaseNames: 不強制 Swift Testing 測試案例命名
+# trailingClosures: (重複設定，上方已有參數) 停用規則形式的尾隨閉包處理
+# unusedArguments: (重複設定) 停用未使用的參數移除規則
+# wrap/wrapArguments...: 停用自動換行相關規則 (完全手動控制)
+--disable docCommentsBeforeModifiers,fileHeader,fileMacro,numberFormatting,redundantLet,redundantRawValues,redundantSelf,strongifiedSelf,swiftTestingTestCaseNames,trailingClosures,unusedArguments,wrap,wrapArguments,wrapAttributes,wrapSingleLineComments
+
+# 啟用的規則 (Enable List)
+# blankLineAfterSwitchCase: Switch case 結束後加空行
+# blankLinesAfterGuardStatements: Guard 語句後加空行
+# blankLinesBetweenImports: Import 語句間加空行
+# blockComments: 允許區塊註釋
+# emptyExtensions: 保留空的 Extension
+# environmentEntry: 格式化 SwiftUI Environment 注入
+# isEmpty: 使用 .isEmpty 替換 count == 0
+# noExplicitOwnership: 移除顯式的擁有權修飾符 (如預設的 strong)
+# noGuardInTests: 測試中禁止使用 guard
+# privateStateVariables: SwiftUI @State 變數設為 private
+# propertyTypes: 格式化屬性類型
+# redundantMemberwiseInit: 移除多餘的成員初始化函式
+# redundantProperty: 移除多餘的屬性
+# singlePropertyPerLine: 每行只定義一個屬性
+# sortSwitchCases: Switch case 排序
+# urlMacro: 使用 URL 巨集
+# wrapConditionalBodies: 條件式內容換行
+# wrapEnumCases: Enum case 換行
+# wrapMultilineConditionalAssignment: 多行條件賦值換行
+# wrapMultilineFunctionChains: 多行函式鏈式調用換行
+--enable blankLineAfterSwitchCase,blankLinesAfterGuardStatements,blankLinesBetweenImports,blockComments,emptyExtensions,environmentEntry,isEmpty,noExplicitOwnership,noGuardInTests,privateStateVariables,propertyTypes,redundantMemberwiseInit,redundantProperty,singlePropertyPerLine,sortSwitchCases,urlMacro,wrapConditionalBodies,wrapEnumCases,wrapMultilineConditionalAssignment,wrapMultilineFunctionChains

@@ -1,0 +1,28 @@
+# --- Swift / Xcode ---
+# Xcode 個人設定
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcuserdatad/
+*.xccheckout/
+*.bundle/
+
+# 編譯產物
+.build/
+DerivedData/
+*.ipsw
+*.xcresult
+
+# --- SwiftPM ---
+# Swift Package Manager 產生的相依性目錄（通常不加入版本控制）
+.swiftpm/xcode/package.xcresult
+.swiftpm/xcode/xcuserdata/
+
+# --- macOS ---
+# 系統產生的垃圾檔
+.DS_Store
+*.swp
+*.lock
+
+# --- CI/CD & Security ---
+# 如果你有金鑰或測試用的密鑰，記得也加在這裡
+*.env
