@@ -7,87 +7,223 @@
 
 import Foundation
 import Testing
+import WebKit
 @testable import WebParser
 
-/// WebParser 框架的單元測試與整合測試集.
-///
-/// 此測試集利用 Swift Testing 框架驗證從基礎配置到真實網頁解析的完整流程.
 @MainActor
 struct WebParserTests {
-  /// 測試 Mapper：驗證 JSON 資料是否能正確映射至 Swift 模型.
-  ///
-  /// 此為單元測試，不依賴網路環境.
-  @Test("驗證 JSON 映射至 MockComic 模型")
-  func testJSONMapping() throws {
-    let mapper = WebParserJSJSONMapper<[MockComic]>()
+  // MARK: - WebParserJSJSONMapper
+
+  @Test("WebParserJSJSONMapper: 正確將 JSON 陣列解碼為模型")
+  func testJSJSONMapperDecodesArray() throws {
     let json = #"""
-    [
-        {
-            "id": "12345",
-            "title": "測試漫畫",
-            "cover": "https://example.com/p.jpg",
-            "note": "連載中",
-            "lastUpdate": 1700000000
-        }
-    ]
+    [{"id":"12345","title":"測試漫畫","cover":"https://example.com/p.jpg","note":"連載中","lastUpdate":1700000000}]
     """#
-    let data = json.data(using: .utf8)!
+    let data = try #require(json.data(using: .utf8))
+    let result = try WebParserJSJSONMapper<[MockComic]>().map(result: data)
 
-    let result = try mapper.map(result: data)
-
-    // 使用 Swift Testing 的 #expect 語法進行斷言
     #expect(result.count == 1)
     #expect(result.first?.id == "12345")
     #expect(result.first?.title == "測試漫畫")
   }
 
-  /// 測試 Config：驗證配置物件是否正確保存自定義屬性.
-  @Test("驗證 Config 的視窗大小設定")
-  func testConfigWindowSize() {
-    let url = URL(string: "https://google.com")!
-    let customSize = CGSize(width: 500, height: 1000)
-    let config = WebParserConfig(url: url, windowSize: customSize)
-
-    #expect(config.windowSize.width == 500)
-    #expect(config.windowSize.height == 1000)
+  @Test("WebParserJSJSONMapper: JSON 格式錯誤時應拋出 DecodingError")
+  func testJSJSONMapperThrowsOnInvalidJSON() throws {
+    let data = try #require("not valid json".data(using: .utf8))
+    #expect(throws: DecodingError.self) {
+      try WebParserJSJSONMapper<MockComic>().map(result: data)
+    }
   }
 
-  /// 整合測試：驗證真實網頁爬取與 JavaScript 執行邏輯.
-  ///
-  /// > Warning: 此測試需要網路連線且受目標網站狀態影響.
-  /// 設定了 1 分鐘的時間限制以防止 CI/CD 流程卡死.
-  @Test("真實網頁解析測試", .timeLimit(.minutes(1)))
-  func testRealWebsiteParsing() async throws {
+  @Test("WebParserJSJSONMapper: 欄位類型不符時應拋出 DecodingError")
+  func testJSJSONMapperThrowsOnTypeMismatch() throws {
+    // id 應為 String, 但給 Int 會造成解碼失敗
+    let json = #"{"id":12345,"title":"測試","cover":"","note":"","lastUpdate":0}"#
+    let data = try #require(json.data(using: .utf8))
+    #expect(throws: DecodingError.self) {
+      try WebParserJSJSONMapper<MockComic>().map(result: data)
+    }
+  }
+
+  // MARK: - WebParserRegexMapper
+
+  @Test("WebParserRegexMapper: 正確執行自訂擷取邏輯")
+  func testRegexMapperExtractsString() throws {
+    // 模擬 JS 回傳帶引號的字串 (JSON 格式的字串值)
+    let data = try #require(#""Hello, WebParser""#.data(using: .utf8))
+    let result = try WebParserRegexMapper<String> { data in
+      let raw = String(data: data, encoding: .utf8) ?? ""
+      return raw.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+    }.map(result: data)
+
+    #expect(result == "Hello, WebParser")
+  }
+
+  @Test("WebParserRegexMapper: 擷取器拋出錯誤時應向上傳遞")
+  func testRegexMapperPropagatesError() {
+    let data = Data()
+    #expect(throws: URLError.self) {
+      try WebParserRegexMapper<String> { _ in
+        throw URLError(.cannotDecodeContentData)
+      }.map(result: data)
+    }
+  }
+
+  @Test("WebParserRegexMapper: 支援非 Codable 的任意回傳類型")
+  func testRegexMapperSupportsNonCodableType() throws {
+    let data = try #require("42".data(using: .utf8))
+    let result = try WebParserRegexMapper<Int> { data in
+      Int(String(data: data, encoding: .utf8) ?? "0") ?? 0
+    }.map(result: data)
+
+    #expect(result == 42)
+  }
+
+  // MARK: - WebParserConfig
+
+  @Test("WebParserConfig: 自訂視窗尺寸正確保存")
+  func testConfigStoresCustomWindowSize() throws {
+    let url = try #require(URL(string: "https://example.com"))
+    let config = WebParserConfig(url: url, windowSize: CGSize(width: 1920, height: 1080))
+
+    #expect(config.windowSize.width == 1920)
+    #expect(config.windowSize.height == 1080)
+  }
+
+  @Test("WebParserConfig: 所有預設值符合規格")
+  func testConfigDefaultValues() throws {
+    let url = try #require(URL(string: "https://example.com"))
+    let config = WebParserConfig(url: url)
+
+    #expect(config.url == url)
+    #expect(config.maxRetryCount == 3)
+    #expect(config.timeout == .seconds(30))
+    #expect(config.retryInterval == .seconds(2))
+    #expect(config.blockMedia == true)
+    #expect(config.shouldAutoInjectCookies == true)
+    #expect(config.executionJS == "document.documentElement.outerHTML")
+    // Debug build 下 isInspectable 預設為 true
+    #expect(config.isInspectable == true)
+  }
+
+  @Test("WebParserConfig: 直接儲存 URL 而非 URLComponents")
+  func testConfigStoresURL() throws {
+    let url = try #require(URL(string: "https://example.com/path?q=1"))
+    let config = WebParserConfig(url: url)
+
+    #expect(config.url == url)
+    #expect(config.url.host == "example.com")
+    #expect(config.url.path == "/path")
+  }
+
+  // MARK: - WebParserUserAgent
+
+  @Test("WebParserUserAgent.iOS: 無版本號時使用預設 17_0")
+  func testUserAgentIOSDefault() {
+    let ua = WebParserUserAgent.iOS()
+    #expect(ua.value.contains("iPhone"))
+    #expect(ua.value.contains("17_0"))
+  }
+
+  @Test("WebParserUserAgent.iOS: 版本號中的點號應替換為底線")
+  func testUserAgentIOSVersionNormalization() {
+    let ua = WebParserUserAgent.iOS(version: "17.4")
+    #expect(ua.value.contains("17_4"))
+    #expect(!ua.value.contains("17.4"))
+  }
+
+  @Test("WebParserUserAgent.custom: 完整保留自訂字串不做任何修改")
+  func testUserAgentCustomPreservesString() {
+    let custom = "Mozilla/5.0 Custom Agent/1.0"
+    let ua = WebParserUserAgent.custom(custom)
+    #expect(ua.value == custom)
+  }
+
+  // MARK: - WebParserSession
+
+  @Test("WebParserSession: nil domain 不執行同步且不拋出錯誤")
+  func testSyncCookiesNilDomain() async {
+    await WebParserSession.shared.syncCookies(for: nil)
+  }
+
+  @Test("WebParserSession: clearAllData 執行後不殘留任何資料")
+  func testClearAllData() async {
+    await WebParserSession.shared.clearAllData()
+    let records = await WebParserSession.shared.dataStore.dataRecords(
+      ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+    )
+    #expect(records.isEmpty)
+  }
+
+  @Test("WebParserSession: 相符網域的 Cookie 同步後可在 WebKit 查詢到")
+  func testSyncCookiesMatchingDomain() async throws {
+    let cookie = try #require(HTTPCookie(properties: [
+      .name: "wp_test_session",
+      .value: "abc123",
+      .domain: "example.com",
+      .path: "/",
+    ]))
+    HTTPCookieStorage.shared.setCookie(cookie)
+
+    await WebParserSession.shared.syncCookies(for: "example.com")
+
+    let synced = await WebParserSession.shared.dataStore.httpCookieStore.allCookies()
+    #expect(synced.contains { $0.name == "wp_test_session" && $0.value == "abc123" })
+
+    // 清理
+    HTTPCookieStorage.shared.deleteCookie(cookie)
+    await WebParserSession.shared.clearAllData()
+  }
+
+  @Test("WebParserSession: 不相符網域的 Cookie 不應同步至 WebKit")
+  func testSyncCookiesNonMatchingDomain() async throws {
+    let cookie = try #require(HTTPCookie(properties: [
+      .name: "wp_other_session",
+      .value: "xyz789",
+      .domain: "other.com",
+      .path: "/",
+    ]))
+    HTTPCookieStorage.shared.setCookie(cookie)
+    await WebParserSession.shared.clearAllData()
+
+    await WebParserSession.shared.syncCookies(for: "example.com")
+
+    let synced = await WebParserSession.shared.dataStore.httpCookieStore.allCookies()
+    #expect(!synced.contains { $0.name == "wp_other_session" })
+
+    // 清理
+    HTTPCookieStorage.shared.deleteCookie(cookie)
+  }
+
+  // MARK: - Integration Test
+
+  @Test("整合測試: 真實網頁解析與 JavaScript 執行", .timeLimit(.minutes(1)))
+  func testRealWebParsing() async throws {
     let parser = WebParser()
-    let config = WebParserConfig(
-      url: URL(string: "https://www.manhuagui.com/update/")!,
-      userAgent: .custom("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.5 Safari/605.1.15"),
-      executionJS: js,
+    let config = try WebParserConfig(
+      url: #require(URL(string: "https://www.manhuagui.com/update/")),
+      userAgent: .custom(
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.5 Safari/605.1.15",
+      ),
+      executionJS: integrationTestJS,
       windowSize: .init(width: 1920, height: 1080),
     )
 
     do {
-      // 執行非同步解析任務
-      let result = try await parser.parse(
-        with: config,
-        mapper: WebParserJSJSONMapper<[MockComic]>(),
-      )
-
+      let result = try await parser.parse(with: config, mapper: WebParserJSJSONMapper<[MockComic]>())
       #expect(!result.isEmpty)
       #expect(result.first?.title != nil)
-      print("Successfully parsed \(result.count) comics.")
+      print("整合測試成功, 共解析 \(result.count) 筆漫畫.")
     }
     catch {
-      // 記錄測試失敗原因
-      Issue.record("解析應成功，但收到錯誤: \(error)")
+      Issue.record("整合測試失敗, 可能為網路問題或目標網站結構變動: \(error)")
     }
   }
 }
 
 // MARK: - Mock Models
 
-/// 用於測試的虛擬漫畫模型.
-private struct MockComic: Codable, Identifiable {
+private struct MockComic: Decodable, Identifiable {
   let id: String
   let title: String
   let cover: String
@@ -97,9 +233,7 @@ private struct MockComic: Codable, Identifiable {
 
 // MARK: - Test Assets
 
-/// 用於測試的 JavaScript 爬取腳本.
-/// 針對特定漫畫網站的 HTML 結構設計，提取 ID, 標題, 封面圖與更新時間.
-private let js = #"""
+private let integrationTestJS = #"""
 (function() {
     var results = [];
     if (typeof $ === 'undefined') return [];
@@ -115,7 +249,7 @@ private let js = #"""
         var comic = {};
 
         var href = item.find('a').attr('href') || "";
-        var idMatch = href.match(/\/comic\/(\d+)/); 
+        var idMatch = href.match(/\/comic\/(\d+)/);
         comic.id = idMatch ? idMatch[1] : href.replace(/\//g, '');
 
         comic.title = item.find('a').attr('title') || item.find('dt').text().trim() || "未知漫畫";
