@@ -12,7 +12,7 @@ import UIKit
 final class ComicListHostController: UIHostingController<ComicListView> {
   // MARK: - ViewModel
 
-  let viewModel: ComicListViewModel
+  private let viewModel: ComicListViewModel
 
   // MARK: - Init
 

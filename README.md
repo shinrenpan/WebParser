@@ -18,6 +18,17 @@
 - **效能優化**: 支持阻擋多媒體資源 (Block Media), 顯著提升渲染速度並節省流量.
 - **開發友善**: 支持 Swift `#"""` 語法, 讓 JavaScript 腳本維護不再受轉義字元困擾.
 
+## 🗂️ Demo 專案設定
+
+Demo 專案使用 [XcodeGen](https://github.com/yonaskolb/XcodeGen) 管理, `xcodeproj` 不納入版控.
+
+```bash
+brew install xcodegen
+cd WebParserDemo && xcodegen generate
+```
+
+完成後以 `WebParser.xcworkspace` 開啟.
+
 ## 🛠️ 安裝方式
 
 透過 **Swift Package Manager** 加入你的專案:

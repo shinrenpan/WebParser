@@ -12,7 +12,7 @@ import UIKit
 final class TitleTestHostController: UIHostingController<TitleTestView> {
   // MARK: - ViewModel
 
-  let viewModel: TitleTestViewModel
+  private let viewModel: TitleTestViewModel
 
   // MARK: - Init
 

@@ -7,6 +7,7 @@
 
 import UIKit
 
+@MainActor
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   // MARK: - UIWindowSceneDelegate
 
@@ -23,6 +24,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     let window = UIWindow(windowScene: windowScene)
     window.rootViewController = makeRootViewController()
+    window.backgroundColor = .systemBackground
     window.makeKeyAndVisible()
     self.window = window
   }

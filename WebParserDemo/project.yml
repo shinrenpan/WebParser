@@ -1,0 +1,38 @@
+name: WebParserDemo
+options:
+  bundleIdPrefix: com.shinrenpan
+  deploymentTarget:
+    iOS: "26.2"
+  xcodeVersion: "16.4"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.2"
+    SWIFT_STRICT_CONCURRENCY: targeted
+
+targets:
+  WebParserDemo:
+    type: application
+    platform: iOS
+    sources: WebParserDemo
+    info:
+      path: WebParserDemo/Info.plist
+      properties:
+        UILaunchScreen: {}
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+    dependencies:
+      - package: WebParser
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shinrenpan.WebParserDemo
+
+packages:
+  WebParser:
+    path: ../WebParser

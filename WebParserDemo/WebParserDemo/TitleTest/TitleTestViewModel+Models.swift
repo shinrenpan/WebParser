@@ -15,7 +15,6 @@ extension TitleTestViewModel {
     var fetchResult: FetchResult = .idle
   }
 
-  /// FetchResult 僅被 State.fetchResult 使用，屬 State 的 L2
   enum FetchResult: Sendable {
     case idle
     case loading
