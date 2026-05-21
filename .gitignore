@@ -1,6 +1,6 @@
 # --- Swift / Xcode ---
 # XcodeGen 產生的 xcodeproj（以 project.yml 為準）
-*.xcodeproj/*
+*.xcodeproj/
 
 # Xcode 個人設定
 xcuserdata/
