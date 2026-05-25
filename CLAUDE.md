@@ -75,6 +75,34 @@ Demo 採用 UIKit SceneDelegate 架構，目錄分為三組：
 - **測試框架**：使用 Swift Testing（`@Test`、`#expect`），不使用 XCTest。
 - **Swift 版本**：6.2，啟用 Strict Concurrency 檢查。
 
+## 未來計畫
+
+### Kotlin Android 版本
+
+計畫將 WebParser 移植為原生 Kotlin Android 版本，架構設計與 iOS 版一對一對應：
+
+| iOS (Swift) | Android (Kotlin) |
+|-------------|-----------------|
+| `@MainActor class` | `@MainThread` + `Dispatchers.Main` |
+| `async throws` | `suspend` |
+| `CheckedContinuation` | `suspendCancellableCoroutine` |
+| Swift protocol + associatedtype | Kotlin interface + generics |
+| Swift enum (associated values) | Kotlin sealed class |
+| `WKWebView` | Android `WebView` |
+| `WKNavigationDelegate` | `WebViewClient` |
+| KVO `estimatedProgress` | `WebChromeClient.onProgressChanged()` |
+| `WKWebsiteDataStore` | `android.webkit.CookieManager` |
+| `JSONSerialization → Data` | 不需要（`evaluateJavascript` 直接回傳 JSON String） |
+| `CancellationError` | `CancellationException` |
+
+**與 iOS 版的差異（需額外處理）：**
+1. Android `WebView` 需附加到 View 層級才能渲染 — 建一個不可見的 `FrameLayout` 掛在 window 上
+2. JavaScript 要手動啟用：`webView.settings.javaScriptEnabled = true`
+3. Timeout 要用 `withTimeout { }` 自行實作
+4. `evaluateJavascript` 回傳 JS `null` 時為字串 `"null"`，`isResultPresent` 需額外處理
+
+`WebParserMapper` 的輸入型別從 `Data` 改為 `String`（Android 版直接拿到 JSON 字串）。
+
 ## Skill Directory Map
 
 > 所有路徑基於 `~/.claude/skills/`
