@@ -5,6 +5,6 @@
       location = "group:WebParserDemo/WebParserDemo.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:WebParser">
+      location = "group:.">
    </FileRef>
 </Workspace>
