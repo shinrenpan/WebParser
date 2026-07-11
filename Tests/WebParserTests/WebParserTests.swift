@@ -10,6 +10,9 @@ import Testing
 import WebKit
 @testable import WebParser
 
+// .serialized: Session 測試共享 WebParserSession.shared 的全域 dataStore (.default()),
+// 並行執行會互相污染 (整合測試留下的 Memory Cache 會污染 clearAllData 斷言), 故序列化.
+@Suite(.serialized)
 @MainActor
 struct WebParserTests {
   // MARK: - WebParserJSJSONMapper
@@ -146,13 +149,23 @@ struct WebParserTests {
     await WebParserSession.shared.syncCookies(for: nil)
   }
 
-  @Test("WebParserSession: clearAllData 執行後不殘留任何資料")
-  func testClearAllData() async {
+  @Test("WebParserSession: clearAllData 清除寫入的 Cookie")
+  func testClearAllData() async throws {
+    // 寫入一個可辨識的 Cookie 作為標記, 斷言它被清除即可,
+    // 避免依賴全域 store 是否純淨 (整合測試會在共享的 .default() store
+    // 留下揮發性 Memory Cache, 使 records.isEmpty 在 CI 上不穩定).
+    let cookie = try #require(HTTPCookie(properties: [
+      .name: "wp_clear_test",
+      .value: "temp",
+      .domain: "example.com",
+      .path: "/",
+    ]))
+    await WebParserSession.shared.dataStore.httpCookieStore.setCookie(cookie)
+
     await WebParserSession.shared.clearAllData()
-    let records = await WebParserSession.shared.dataStore.dataRecords(
-      ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
-    )
-    #expect(records.isEmpty)
+
+    let cookies = await WebParserSession.shared.dataStore.httpCookieStore.allCookies()
+    #expect(!cookies.contains { $0.name == "wp_clear_test" })
   }
 
   @Test("WebParserSession: 相符網域的 Cookie 同步後可在 WebKit 查詢到")
