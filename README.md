@@ -1,5 +1,7 @@
 # WebParser 🚀
 
+[English](README.en.md) | **中文**
+
 ![Swift 6.2](https://img.shields.io/badge/Swift-6.2-orange.svg)
 ![Platforms](https://img.shields.io/badge/Platforms-iOS%2017+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
@@ -111,7 +113,7 @@ func webParser(_ parser: WebParser, didUpdateState state: WebParserState) {
 本專案全面導入 **Swift Testing** 框架, 確保核心邏輯與 WebKit 渲染的穩定性.
 
 ```bash
-cd WebParser && swift test --parallel
+swift test --parallel
 ```
 
 ---
