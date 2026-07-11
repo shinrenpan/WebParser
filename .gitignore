@@ -16,9 +16,8 @@ DerivedData/
 *.xcresult
 
 # --- SwiftPM ---
-# Swift Package Manager 產生的相依性目錄（通常不加入版本控制）
-.swiftpm/xcode/package.xcresult
-.swiftpm/xcode/xcuserdata/
+# Xcode 為 Package 產生的本機狀態（workspace、UI state、scheme 等），整個忽略
+.swiftpm/
 
 # --- macOS ---
 # 系統產生的垃圾檔
