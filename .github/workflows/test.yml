@@ -14,9 +14,6 @@ jobs:
     # 使用 latest 標籤，GitHub 會自動指向當前託管的最頂版本 (例如 macOS 16)
     runs-on: macos-latest
 
-    defaults:
-      run:
-        working-directory: WebParser
     steps:
       - uses: actions/checkout@v4
 
