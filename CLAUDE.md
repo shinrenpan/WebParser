@@ -75,6 +75,16 @@ Each feature follows a `HostController → ViewModel → View` three-layer struc
 - **Test framework**: Swift Testing (`@Test`, `#expect`), not XCTest.
 - **Swift version**: 6.2, with Strict Concurrency checking enabled.
 
+## Release Convention
+
+- Only tag a commit whose CI is green (check `gh run list --workflow=test.yml`).
+- Use `v`-prefixed **annotated** tags (`git tag -a vX.Y.Z -m "..."`), following SemVer:
+  - `vX.0.0` — breaking changes
+  - `v0.X.0` — new features or significant docs additions
+  - `v0.0.X` — bug fixes
+- Every tag gets a matching GitHub Release with Chinese notes, grouped by Features / Fixes / Docs / Misc.
+- Historical tags `1.0.0`–`1.0.2` (no `v` prefix, lightweight, some on red CI) are left untouched as history; the `v`-prefix + annotated + Release convention starts from the next version.
+
 ## Future Plans
 
 ### Kotlin Android port
